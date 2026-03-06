@@ -22,7 +22,6 @@ import {
 } from "@tabler/icons-react";
 export const Navbar = () => {
   const [opened, { toggle }] = useDisclosure();
-
   return (
     <AppShell
       padding="md"
@@ -68,6 +67,7 @@ export const Navbar = () => {
           <NavLink
             label={opened ? "Home" : ""}
             leftSection={<IconHome size={30} />}
+            href="/"
           />
           <NavLink
             label={opened ? "Profile" : ""}

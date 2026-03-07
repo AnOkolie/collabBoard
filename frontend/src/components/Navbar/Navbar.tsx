@@ -20,6 +20,18 @@ import {
   IconCalendar,
   IconLogout,
 } from "@tabler/icons-react";
+import { Form } from "react-router-dom";
+import { Outlet } from "react-router-dom";
+
+export function AppLayout() {
+  return (
+    <>
+      <Navbar />
+      <Outlet />
+    </>
+  );
+}
+
 export const Navbar = () => {
   const [opened, { toggle }] = useDisclosure();
   return (
@@ -72,21 +84,25 @@ export const Navbar = () => {
           <NavLink
             label={opened ? "Profile" : ""}
             leftSection={<IconUser size={30} />}
+            href="/profile"
           />
           <NavLink
             label={opened ? "Messages" : ""}
             leftSection={<IconMessage size={30} />}
+            href="/messages"
           />
           <NavLink
             label={opened ? "Settings" : ""}
             leftSection={<IconSettings size={30} />}
           />
-          <Flex justify={"flex-end"} align={"center"}>
+
+          <Form method="post">
             <NavLink
               label={opened ? "Logout" : ""}
               leftSection={<IconLogout size={30} />}
+              href="logout"
             />
-          </Flex>
+          </Form>
         </AppShell.Section>
       </AppShell.Navbar>
     </AppShell>

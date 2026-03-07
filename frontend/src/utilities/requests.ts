@@ -17,6 +17,7 @@ export const request = async <Type>(
       method,
       headers: requestHeaders,
       body,
+      credentials: "include",
     });
     if (res.ok) {
       return { data: await res.json() };

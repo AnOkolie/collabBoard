@@ -1,17 +1,36 @@
 import { addBoardColumn } from "../../api/columnview";
+import { createCard } from "../../api/card";
 
 export const columnAction = async ({ request }: { request: Request }) => {
   const formData = await request.formData();
-  const columnTitle = formData.get("columnTitle") as string;
-  const boardId = formData.get("boardId") as string;
-  if (!columnTitle || !boardId) {
-    return { error: true };
+  const intent = formData.get("intent");
+  switch (intent) {
+    case "add-column":
+      return await addBoard(
+        formData.get("boardId") as string,
+        formData.get("columnTitle") as string,
+      );
+    case "add-card":
+      return await addCard(
+        formData.get("cardTitle") as string,
+        formData.get("columnId") as string,
+        formData.get("cardContent") as string,
+        formData.get("boardId") as string,
+      );
+    default:
+      return { error: true };
   }
-  console.log(
-    "columnAction called with columnTitle:",
-    columnTitle,
-    "boardId:",
-    boardId,
-  );
+};
+
+const addBoard = async (boardId: string, columnTitle: string) => {
   return addBoardColumn(columnTitle, boardId);
+};
+
+const addCard = async (
+  cardTitle: string,
+  columnId: string,
+  cardContent: string,
+  boardId: string,
+) => {
+  return await createCard(cardTitle, columnId, cardContent, boardId);
 };

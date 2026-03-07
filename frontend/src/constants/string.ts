@@ -77,4 +77,6 @@ export const DELETE_BUTTON_TEXT = "Delete";
 export const PROJECTS_TEXT = "Projects";
 
 export const EXPORT_DATA_BUTTON_TEXT = "Export Data";
+export const ERROR_BOUNDARY_PAGE_TEXT =
+  "Uh oh! Something went wrong! Please try again later or refresh the page.";
 export const PROJECT_HEADER_TEXT = "Project Dashboard";

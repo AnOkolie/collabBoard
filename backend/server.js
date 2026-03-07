@@ -9,6 +9,7 @@ import boardRoutes from "./src/routes/board.route.js";
 import cardRoutes from "./src/routes/card.route.js";
 import columnRoutes from "./src/routes/columns.route.js";
 import authRoutes from "./src/routes/auth.route.js";
+import userRoutes from "./src/routes/user.route.js";
 
 const app = express();
 const server = http.createServer(app);
@@ -25,7 +26,7 @@ app.use(
     .get("/", (req, res) => res.json({ message: "Welcome to the API" })),
 );
 app.use("/api", boardRoutes);
-// app.use('/api/users', userRoutes);
+app.use("/api", userRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api", cardRoutes);
 app.use("/api", columnRoutes);

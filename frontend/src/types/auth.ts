@@ -10,3 +10,7 @@ export type checkAuthResponse = {
   message: string;
   user: userObject;
 };
+
+export type logoutResponse = {
+  message: string;
+};

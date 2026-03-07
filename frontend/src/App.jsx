@@ -21,6 +21,12 @@ import { columnLoader } from "./components/Columns/loader";
 import { columnAction } from "./components/Columns/action";
 import { DndContext } from "@dnd-kit/core";
 import { boardAction } from "./components/Boards/action";
+import { UserProfile } from "./components/UserProfile/UserProfile";
+import { userProfileAction } from "./components/UserProfile/action";
+import { loginLoader } from "./components/Login/loader";
+import { AppLayout } from "./components/Navbar/Navbar";
+import { navbarAction } from "./components/Navbar/action";
+import { ErrorBoundary } from "./components/ErrorBoundary/ErrorBoundary";
 export const App = () => {
   const { authUser, isCheckingAuth, checkAuth } = useAuthStore();
 
@@ -39,47 +45,64 @@ export const App = () => {
   if (isCheckingAuth) return <PageLoader />;
   const router = createBrowserRouter([
     {
+      path: "/",
+      element: <AppLayout />,
+      errorElement: <ErrorBoundary />,
+      hydrateFallbackElement: <PageLoader />,
       children: [
         {
-          path: "/",
+          index: true,
           element: <BoardPage />,
+          errorElement: <ErrorBoundary />,
+          hydrateFallbackElement: <PageLoader />,
           loader: boardLoader,
           action: boardAction,
         },
         {
-          path: "/board/:board_id",
+          path: "board/:board_id",
           element: (
             <DndContext>
               <ColumnView />
             </DndContext>
           ),
+          errorElement: <ErrorBoundary />,
+          hydrateFallbackElement: <PageLoader />,
           loader: columnLoader,
           action: columnAction,
         },
         {
-          path: "/login",
-          element: (
-            <RedirectIfAuthenticated>
-              <Login />
-            </RedirectIfAuthenticated>
-          ),
+          path: "login",
+          element: <Login />,
+          errorElement: <ErrorBoundary />,
+          hydrateFallbackElement: <PageLoader />,
+          loader: loginLoader,
           action: loginAction,
         },
         {
-          path: "/signup",
-          element: (
-            <RedirectIfAuthenticated>
-              <Signup />
-            </RedirectIfAuthenticated>
-          ),
+          path: "signup",
+          element: <Signup />,
+          errorElement: <ErrorBoundary />,
+          hydrateFallbackElement: <PageLoader />,
           action: signupAction,
+        },
+        {
+          path: "profile",
+          element: <UserProfile />,
+          errorElement: <ErrorBoundary />,
+          hydrateFallbackElement: <PageLoader />,
+          action: userProfileAction,
+        },
+        {
+          path: "logout",
+          errorElement: <ErrorBoundary />,
+          hydrateFallbackElement: <PageLoader />,
+          action: navbarAction,
         },
       ],
     },
   ]);
   return (
     <MantineProvider>
-      <Navbar />
       <RouterProvider router={router} />
     </MantineProvider>
   );

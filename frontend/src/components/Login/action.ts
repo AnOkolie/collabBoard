@@ -21,12 +21,13 @@ export const loginAction = async ({ request }: ActionFunctionArgs) => {
     };
   }
   if (response.data) {
+    console.log("login response data", response.data);
     const userData = await response.data.user;
     const token = await response.data.token;
     useAuthStore.getState().setAuthUser({
       id: userData.id,
       email: userData.email,
-      name: userData.name,
+      username: userData.username,
       createdAt: userData.createdAt,
     });
     return response;

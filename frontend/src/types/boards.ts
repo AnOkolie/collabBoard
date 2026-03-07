@@ -15,3 +15,8 @@ export type BoardCreateRequest = {
   message: string;
   board: BoardType[];
 };
+
+export type BoardHistoryResponse = {
+  message: string;
+  data: Record<string, number>;
+};

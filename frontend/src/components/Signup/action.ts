@@ -4,7 +4,6 @@ import { ActionFunctionArgs } from "react-router-dom";
 import { signup } from "../../api/signup";
 import { useAuthStore } from "../../zustand/authStore/useAuthStore";
 
-// const { setAuthUser } = useAuthStore();
 export const signupAction = async ({ request }: ActionFunctionArgs) => {
   const formData = await request.formData();
   if (!formData) return { error: "Form Data error", status: 500 };
@@ -27,14 +26,15 @@ export const signupAction = async ({ request }: ActionFunctionArgs) => {
     };
   }
   if (response.data) {
+    console.log("signup response data", response.data);
     const userData = await response.data.user;
     const token = await response.data.token;
-    // setAuthUser({
-    //   id: userData.id,
-    //   email: userData.email,
-    //   name: userData.name,
-    //   createdAt: userData.createdAt,
-    // });
+    useAuthStore.getState().setAuthUser({
+      id: userData.id,
+      email: userData.email,
+      username: userData.username,
+      createdAt: userData.createdAt,
+    });
     return response;
   }
 };

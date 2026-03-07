@@ -11,7 +11,7 @@ export const getBoard = async (req, res) => {
     ]);
 
     if (result.rows.length === 0) {
-      return res.status(404).json({ error: "Board not found" });
+      return res.status(200).json({ message: "No boards found for this user" });
     }
 
     return res.status(200).json({
@@ -118,5 +118,72 @@ export const deleteBoard = async (req, res) => {
   } catch (err) {
     console.error("Error deleting board:", err);
     return res.status(500).json({ error: "Failed to delete board" });
+  }
+};
+
+export const getAllBoardDetails = async (req, res) => {
+  const { user_id: userId } = req.params;
+
+  if (!userId) {
+    return res.status(400).json({ error: "Missing userId field" });
+  }
+
+  const boardsMap = new Map();
+  boardsMap.set("total", 0);
+
+  try {
+    const boardsResult = await pool.query(
+      "SELECT id FROM boards WHERE user_id = $1",
+      [userId],
+    );
+
+    for (let i = 0; i < boardsResult.rows.length; i++) {
+      const boardId = boardsResult.rows[i].id;
+
+      const allTasksResult = await pool.query(
+        `
+        SELECT COUNT(cards.id) AS count
+        FROM columns
+        LEFT JOIN cards ON columns.id = cards.column_id
+        WHERE columns.board_id = $1
+        `,
+        [boardId],
+      );
+
+      const groupedTasksResult = await pool.query(
+        `
+        SELECT columns.title, COUNT(cards.id) AS count
+        FROM columns
+        LEFT JOIN cards ON columns.id = cards.column_id
+        WHERE columns.board_id = $1
+        GROUP BY columns.id, columns.title
+        `,
+        [boardId],
+      );
+
+      boardsMap.set(
+        "total",
+        boardsMap.get("total") + Number(allTasksResult.rows[0].count),
+      );
+
+      for (let j = 0; j < groupedTasksResult.rows.length; j++) {
+        const title = groupedTasksResult.rows[j].title;
+        const cardCount = Number(groupedTasksResult.rows[j].count);
+
+        if (!boardsMap.has(title)) {
+          boardsMap.set(title, cardCount);
+        } else {
+          boardsMap.set(title, boardsMap.get(title) + cardCount);
+        }
+      }
+    }
+
+    return res.status(200).json({
+      message: "All boards history",
+      data: Object.fromEntries(boardsMap),
+    });
+  } catch (error) {
+    console.error("Error fetching board details:", error);
+    return res.status(500).json({ error: "Internal Server Error!" });
   }
 };

@@ -76,6 +76,14 @@ export const getBoardColumns = async (req, res) => {
       [board_id],
     );
 
+    for (let i = 0; i < result.rows.length; i++) {
+      const cardsResult = await pool.query(
+        "SELECT * FROM cards WHERE column_id = $1",
+        [result.rows[i].id],
+      );
+      result.rows[i].cards = cardsResult.rows;
+    }
+
     return res.json({
       message: "Columns retrieved successfully",
       columns: result.rows,

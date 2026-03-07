@@ -1,5 +1,9 @@
 import { request } from "../utilities/requests";
-import { BoardCreateRequest, boardResponse } from "../types/boards";
+import {
+  BoardCreateRequest,
+  BoardHistoryResponse,
+  boardResponse,
+} from "../types/boards";
 import { RequestMethods } from "../types/requests";
 import { useAuthStore } from "../zustand/authStore/useAuthStore";
 import { RequestResolve } from "../types/requests";
@@ -33,3 +37,8 @@ export const renameBoard = async (
 
 export const deleteBoard = async (boardId: string) =>
   await request(RequestMethods.DELETE, `boards/${boardId}`);
+
+export const boardHistory = async (
+  userId: string,
+): Promise<RequestResolve<BoardHistoryResponse>> =>
+  await request(RequestMethods.GET, `board-history-summary/${userId}`);

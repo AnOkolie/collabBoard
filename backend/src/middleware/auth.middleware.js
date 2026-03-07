@@ -25,3 +25,19 @@ export const protectRoute = async (req, res, next) => {
     return res.status(500).json({ message: "Internal Server Error" });
   }
 };
+
+export const requireAuth = (req, res, next) => {
+  const token = req.cookies.token;
+
+  if (!token) {
+    return res.status(401).json({ error: "Not authenticated" });
+  }
+
+  try {
+    const { sub } = jwt.verify(token, ENV.JWT_SECRET);
+    req.userId = sub;
+    next();
+  } catch {
+    return res.status(401).json({ error: "Invalid token" });
+  }
+};

@@ -26,7 +26,6 @@ export const signupAction = async ({ request }: ActionFunctionArgs) => {
     };
   }
   if (response.data) {
-    console.log("signup response data", response.data);
     const userData = await response.data.user;
     const token = await response.data.token;
     useAuthStore.getState().setAuthUser({
@@ -34,6 +33,7 @@ export const signupAction = async ({ request }: ActionFunctionArgs) => {
       email: userData.email,
       username: userData.username,
       createdAt: userData.createdAt,
+      profilepic: userData.profilepic,
     });
     return response;
   }

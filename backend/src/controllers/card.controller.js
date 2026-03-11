@@ -75,7 +75,7 @@ export const moveCard = async (req, res) => {
   try {
     const { id } = req.params;
     const { column_id: columnId, board_id: boardId } = req.body;
-    console.log("Moving card with ID:", id, "to column ID:", columnId);
+
     await pool.query("BEGIN");
     await pool.query(
       "UPDATE cards SET column_id = $1, updated_at = NOW() WHERE id = $2",
@@ -100,7 +100,6 @@ const updateBoardProgress = async (boardId) => {
       [boardId],
     );
     if (completedColumnId.rows.length === 0) {
-      console.log("No 'completed' column found for board ID:", boardId);
       return;
     }
     const completedCardsCountResult = await pool.query(
@@ -118,7 +117,6 @@ const updateBoardProgress = async (boardId) => {
     const totalCardsCount = parseInt(totalCardsCountResult.rows[0].count, 10);
     const progress =
       totalCardsCount > 0 ? (completedCardsCount / totalCardsCount) * 100 : 0;
-    console.log(`Updating board ID ${boardId} progress to ${progress}%`);
     await pool.query("UPDATE boards SET progress = $1 WHERE id = $2", [
       progress,
       boardId,

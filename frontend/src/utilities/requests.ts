@@ -22,7 +22,7 @@ export const request = async <Type>(
     if (res.ok) {
       return { data: await res.json() };
     }
-    return { error: { status: res.status, message: "Request failed" } };
+    return { error: { status: res.status, message: await res.json() } };
   } catch (error) {
     return { error: { status: 500, message: "Internal server error" } };
   }

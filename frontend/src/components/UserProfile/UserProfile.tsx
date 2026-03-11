@@ -9,153 +9,220 @@ import {
   TextInput,
   Text,
   Input,
+  FileInput,
+  Stack,
 } from "@mantine/core";
 import { useAuthStore } from "../../zustand/authStore/useAuthStore";
 import { useDisclosure } from "@mantine/hooks";
-import { Form, useActionData, useSubmit } from "react-router";
-import { use, useEffect, useState } from "react";
-import {
-  SIGN_UP_RULE_1,
-  SIGN_UP_RULE_2,
-  SIGN_UP_RULE_3,
-  SIGN_UP_RULE_4,
-  SIGN_UP_RULE_5,
-} from "../../constants/string";
+import { Form, useActionData, useSubmit } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { SIGN_UP_RULE_1 } from "../../constants/string";
+import { IconPencil } from "@tabler/icons-react";
 
 export const UserProfile = () => {
-  const { username, email, id } = useAuthStore.getState().authUser || {};
+  const authUser = useAuthStore((s) => s.authUser);
+  const { username, email, id, profilepic } = authUser || {};
+
   const [passwordChangeOpened, passwordChangeHandlers] = useDisclosure(false);
   const [passwordChange, setPasswordChange] = useState("");
   const [confirmPasswordChange, setConfirmPasswordChange] = useState("");
   const [userName, setUserName] = useState(username || "");
   const [userEmail, setUserEmail] = useState(email || "");
-  const [passwordChanged, setPasswordChanged] = useState(false);
-  const [intent, setIntent] = useState("");
+  const [intent, setIntent] = useState<
+    "update-profile" | "delete-account" | ""
+  >("");
+  const [preview, setPreview] = useState<string | null>(profilepic || null);
+  const [imgFile, setImgFile] = useState<File | null>(null);
+  const [includePassword, setIncludePassword] = useState(false);
+
   const submit = useSubmit();
-  const actionData = useActionData();
+  const actionData = useActionData() as any;
+
   const passwordLen = 8;
+
   const checkRules = (value: string) => ({
     hasDigit: /\d/.test(value),
     hasLowercase: /[a-z]/.test(value),
     hasSpecial: /[@#$%^&*()\-_+=]/.test(value),
     hasUppercase: /[A-Z]/.test(value),
-    matchesLen: value.length > passwordLen,
+    matchesLen: value.length >= passwordLen,
     passwordChangesMatch: value.length !== 0 && value === confirmPasswordChange,
   });
+
   const rules = checkRules(passwordChange);
 
-  const handleSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const formdata = new FormData(e.currentTarget);
-    formdata.delete("Name");
-    formdata.delete("Email");
-    formdata.append("name", userName);
-    formdata.append("email", userEmail);
-    formdata.append("intent", intent);
-    if (passwordChanged) {
-      formdata.append("password", passwordChange);
+
+    const formData = new FormData(e.currentTarget);
+    if (imgFile) {
+      formData.set("profilePic", imgFile);
+    } else {
+      formData.delete("profilePic");
     }
-    console.log(Array.from(formdata.entries()));
-    setIntent(""); // Reset intent after submission
-    submit(formdata, { method: "post" });
+
+    if (includePassword && passwordChange.trim()) {
+      formData.set("password", passwordChange);
+    } else {
+      formData.delete("password");
+    }
+    formData.append("username", userName);
+    formData.append("email", userEmail);
+    formData.append("intent", intent);
+    if (includePassword) {
+      formData.append("password", passwordChange);
+    }
+
+    submit(formData, { method: "post", encType: "multipart/form-data" });
   };
 
-  useEffect(() => {
-    if (!actionData) return;
-    if (actionData.message === "User deleted successfully") {
+  const handleImagePreview = (file: File | null) => {
+    if (!file) {
+      setImgFile(null);
+      return;
     }
-    const user = actionData.data;
-    useAuthStore.setState({ authUser: { ...user, password: undefined } });
-    if (actionData.ok) {
-      // Handle successful update or deletion (e.g., show a success message, redirect, etc.)
-      console.log("actionData.data:", actionData.data);
-    }
-  }, [actionData]);
+
+    setImgFile(file);
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setPreview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handlePasswordConfirm = () => {
+    if (!rules.matchesLen || !rules.passwordChangesMatch) return;
+    setIncludePassword(true);
+    passwordChangeHandlers.close();
+  };
 
   return (
-    <Container>
+    <Container size="sm">
       <Modal
         opened={passwordChangeOpened}
         onClose={passwordChangeHandlers.close}
+        title="Change password"
       >
-        <Paper mt={10} p={22} radius="lg" withBorder>
-          <Text c={rules.matchesLen ? "green" : "red"}>{SIGN_UP_RULE_1}</Text>
-        </Paper>
-        <TextInput
-          label="New Password"
-          type="password"
-          onChange={(e) => {
-            setPasswordChange(e.target.value);
-          }}
-        />
-        <TextInput
-          label="Confirm New Password"
-          type="password"
-          onChange={(e) => {
-            setConfirmPasswordChange(e.target.value);
-          }}
-        />
-        <Text c={rules.passwordChangesMatch ? "green" : "red"}>
-          {rules.passwordChangesMatch
-            ? "Passwords match"
-            : "Passwords do not match"}
-        </Text>
-        <Button mt="md" onClick={() => setPasswordChanged(true)}>
-          Change Password
-        </Button>
+        <Stack>
+          <Paper mt={10} p={22} radius="lg" withBorder>
+            <Text c={rules.matchesLen ? "green" : "red"}>{SIGN_UP_RULE_1}</Text>
+          </Paper>
+
+          <TextInput
+            label="New Password"
+            type="password"
+            value={passwordChange}
+            onChange={(e) => setPasswordChange(e.currentTarget.value)}
+          />
+
+          <TextInput
+            label="Confirm New Password"
+            type="password"
+            value={confirmPasswordChange}
+            onChange={(e) => setConfirmPasswordChange(e.currentTarget.value)}
+          />
+
+          <Text c={rules.passwordChangesMatch ? "green" : "red"}>
+            {rules.passwordChangesMatch
+              ? "Passwords match"
+              : "Passwords do not match"}
+          </Text>
+
+          <Button mt="md" onClick={handlePasswordConfirm}>
+            Confirm Password Change
+          </Button>
+        </Stack>
       </Modal>
+
       <Paper shadow="sm" p="lg" radius="md" withBorder>
         <Card>
-          <Flex>
-            <Form method="post" onSubmit={handleSubmit}>
-              <Input type="hidden" value={id} name="userId" />
-              <Avatar
-                src="https://avatars.githubusercontent.com/u/12345678?v=4"
-                size={120}
-                radius={60}
-              />
+          <Form
+            method="post"
+            encType="multipart/form-data"
+            onSubmit={handleSubmit}
+          >
+            <Input type="hidden" value={id || ""} name="userId" />
+            <Input
+              type="hidden"
+              value={includePassword ? "true" : "false"}
+              name="includePassword"
+            />
+
+            <Stack gap="lg">
+              <Flex align="center" gap="md">
+                <Avatar
+                  src={preview || "./avatar.png"}
+                  size={120}
+                  radius={60}
+                />
+
+                <Button
+                  component="label"
+                  variant="outline"
+                  leftSection={<IconPencil />}
+                >
+                  Change picture
+                  <input
+                    hidden
+                    type="file"
+                    name="profilePic"
+                    accept="image/*"
+                    onChange={(e) =>
+                      handleImagePreview(e.target.files?.[0] || null)
+                    }
+                  />
+                </Button>
+              </Flex>
+
               <TextInput
                 label="Name"
-                defaultValue={username || "John Doe"}
-                onChange={(e) => {
-                  setUserName(e.target.value);
-                }}
+                name="name"
+                value={userName}
+                onChange={(e) => setUserName(e.currentTarget.value)}
               />
+
               <TextInput
                 label="Email"
-                defaultValue={email || "john.doe@example.com"}
-                onChange={(e) => {
-                  setUserEmail(e.target.value);
-                }}
+                name="email"
+                value={userEmail}
+                onChange={(e) => setUserEmail(e.currentTarget.value)}
               />
-              <Flex direction={"row"} gap="md">
+
+              <Flex gap="md">
                 <Button variant="outline" onClick={passwordChangeHandlers.open}>
                   Change Password
                 </Button>
               </Flex>
-              <Flex direction={"row"} gap="md" justify="flex-end">
+
+              <Flex gap="md" justify="flex-end">
                 <Button
                   mt="md"
                   name="intent"
                   value="update-profile"
                   type="submit"
-                  onClick={() => setIntent("update-profile")}
+                  onClick={() => {
+                    setIntent("update-profile");
+                  }}
                 >
                   Update Profile
                 </Button>
+
                 <Button
                   mt="md"
                   color="red"
                   name="intent"
                   value="delete-account"
                   type="submit"
-                  onClick={() => setIntent("delete-account")}
+                  onClick={() => {
+                    setIntent("delete-account");
+                  }}
                 >
                   Delete Account
                 </Button>
               </Flex>
-            </Form>
-          </Flex>
+            </Stack>
+          </Form>
         </Card>
       </Paper>
     </Container>

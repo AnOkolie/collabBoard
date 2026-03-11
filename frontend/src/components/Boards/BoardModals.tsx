@@ -25,6 +25,8 @@ type DisclosureHandlers = {
 type BoardModalsProps = {
   boardTitle: string;
   setBoardTitle: React.Dispatch<React.SetStateAction<string>>;
+  newBoardTitle: string;
+  setNewBoardTitle: React.Dispatch<React.SetStateAction<string>>;
   selectedBoardId: string;
   createBoardOpened: boolean;
   createBoardHandlers: DisclosureHandlers;
@@ -34,12 +36,15 @@ type BoardModalsProps = {
   deleteBoardHandlers: DisclosureHandlers;
   renameBoardOpened: boolean;
   renameBoardHandlers: DisclosureHandlers;
-  handleCreateBoardSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
+  handleCreateBoardSubmit: (e: React.SubmitEvent<HTMLFormElement>) => void;
+  handleRenameBoardSubmit: (e: React.SubmitEvent<HTMLFormElement>) => void;
 };
 
 export const BoardModals = ({
   boardTitle,
   setBoardTitle,
+  newBoardTitle,
+  setNewBoardTitle,
   selectedBoardId,
   createBoardOpened,
   createBoardHandlers,
@@ -50,6 +55,7 @@ export const BoardModals = ({
   renameBoardOpened,
   renameBoardHandlers,
   handleCreateBoardSubmit,
+  handleRenameBoardSubmit,
 }: BoardModalsProps) => {
   return (
     <>
@@ -142,12 +148,16 @@ export const BoardModals = ({
         title="Rename board"
         centered
       >
-        <Form method="post">
+        <Form method="post" onSubmit={handleRenameBoardSubmit}>
           <Input type="hidden" name="boardId" value={selectedBoardId} />
           <TextInput
             label="New board name"
             placeholder="e.g. Design homepage"
-            name="newBoardTitle"
+            name="newTitle"
+            value={newBoardTitle}
+            onChange={(e) => {
+              setNewBoardTitle(e.currentTarget.value);
+            }}
           />
 
           <Flex gap="md" justify="flex-end" mt="md">

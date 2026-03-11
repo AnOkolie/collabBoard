@@ -1,7 +1,18 @@
-import { Container, Grid } from "@mantine/core";
+import {
+  Container,
+  Grid,
+  Stack,
+  Title,
+  Text,
+  Group,
+  Button,
+  Paper,
+  Divider,
+} from "@mantine/core";
 import { useMemo, useState } from "react";
 import { useActionData, useLoaderData, useNavigate } from "react-router-dom";
 import { useDisclosure } from "@mantine/hooks";
+import { IconPlus } from "@tabler/icons-react";
 import { BoardType } from "../../types/boards";
 import { BoardsGrid } from "./BoardsGrid";
 import { BoardStatsPanel } from "./BoardStatsPanel";
@@ -25,6 +36,7 @@ export const BoardPage = () => {
   const stats = loaderData?.stats?.data ?? {};
 
   const [boardTitle, setBoardTitle] = useState("");
+  const [newBoardTitle, setNewBoardTitle] = useState("");
   const [selectedBoardId, setSelectedBoardId] = useState("");
 
   const [createBoardOpened, createBoardHandlers] = useDisclosure(false);
@@ -52,16 +64,27 @@ export const BoardPage = () => {
     setBoardTitle("");
   };
 
+  const handleRenameBoardSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    if (!newBoardTitle.trim()) {
+      e.preventDefault();
+      return;
+    }
+    renameBoardHandlers.close();
+    setNewBoardTitle("");
+  };
+
   const openBoardActions = (boardId: string) => {
     setSelectedBoardId(boardId);
     boardActionsHandlers.open();
   };
 
   return (
-    <Container fluid p="xl">
+    <Container size="xl" py="xl">
       <BoardModals
         boardTitle={boardTitle}
         setBoardTitle={setBoardTitle}
+        newBoardTitle={newBoardTitle}
+        setNewBoardTitle={setNewBoardTitle}
         selectedBoardId={selectedBoardId}
         createBoardOpened={createBoardOpened}
         createBoardHandlers={createBoardHandlers}
@@ -72,34 +95,94 @@ export const BoardPage = () => {
         renameBoardOpened={renameBoardOpened}
         renameBoardHandlers={renameBoardHandlers}
         handleCreateBoardSubmit={handleCreateBoardSubmit}
+        handleRenameBoardSubmit={handleRenameBoardSubmit}
       />
 
-      <Grid gutter="lg" align="flex-start">
-        <Grid.Col span={{ base: 12, md: 8 }}>
-          <BoardsGrid
-            rows={rows}
-            noBoards={noBoards}
-            onCreateBoard={createBoardHandlers.open}
-            onOpenBoard={navigate}
-            onOpenBoardActions={openBoardActions}
-            onDeleteBoard={() => {
-              boardActionsHandlers.close();
-              deleteBoardHandlers.open();
-            }}
-            onRenameBoard={() => {
-              boardActionsHandlers.close();
-              renameBoardHandlers.open();
-            }}
-          />
-        </Grid.Col>
+      <Stack gap="lg">
+        <Paper
+          p="xl"
+          radius="xl"
+          withBorder
+          style={{
+            background:
+              "linear-gradient(135deg, rgba(250,245,255,1) 0%, rgba(243,232,255,1) 100%)",
+          }}
+        >
+          <Group justify="space-between" align="flex-start">
+            <div>
+              <Title order={1}>Your Boards</Title>
+              <Text c="dimmed" mt={6}>
+                Manage projects, track progress, and jump back into your active
+                work.
+              </Text>
+            </div>
 
-        <Grid.Col span={{ base: 12, md: 4 }}>
-          <BoardStatsPanel
-            boardProgress={boardProgress}
-            boardDetails={boardDetails}
-          />
-        </Grid.Col>
-      </Grid>
+            <Button
+              leftSection={<IconPlus size={16} />}
+              radius="xl"
+              onClick={createBoardHandlers.open}
+            >
+              Create Board
+            </Button>
+          </Group>
+        </Paper>
+
+        <Grid gutter="lg" align="stretch">
+          <Grid.Col span={{ base: 12, lg: 8 }}>
+            <Paper withBorder radius="xl" p="lg" h="100%">
+              <Stack gap="md">
+                <Group justify="space-between" align="center">
+                  <div>
+                    <Title order={3}>Projects</Title>
+                    <Text size="sm" c="dimmed">
+                      {noBoards
+                        ? "No boards yet"
+                        : `${rows.length} board${rows.length === 1 ? "" : "s"} available`}
+                    </Text>
+                  </div>
+                </Group>
+
+                <Divider />
+
+                <BoardsGrid
+                  rows={rows}
+                  noBoards={noBoards}
+                  onCreateBoard={createBoardHandlers.open}
+                  onOpenBoard={navigate}
+                  onOpenBoardActions={openBoardActions}
+                  onDeleteBoard={() => {
+                    boardActionsHandlers.close();
+                    deleteBoardHandlers.open();
+                  }}
+                  onRenameBoard={() => {
+                    boardActionsHandlers.close();
+                    renameBoardHandlers.open();
+                  }}
+                />
+              </Stack>
+            </Paper>
+          </Grid.Col>
+
+          <Grid.Col span={{ base: 12, lg: 4 }}>
+            <Stack gap="lg">
+              <Paper withBorder radius="xl" p="lg">
+                <BoardStatsPanel
+                  boardProgress={boardProgress}
+                  boardDetails={boardDetails}
+                />
+              </Paper>
+
+              <Paper withBorder radius="xl" p="lg">
+                <Title order={4}>Quick Notes</Title>
+                <Text size="sm" c="dimmed" mt="xs">
+                  Keep an eye on project health here. You can use this space
+                  later for announcements, deadlines, or team updates.
+                </Text>
+              </Paper>
+            </Stack>
+          </Grid.Col>
+        </Grid>
+      </Stack>
     </Container>
   );
 };

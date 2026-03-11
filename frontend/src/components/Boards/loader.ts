@@ -12,13 +12,7 @@ type combinedLoader = {
 };
 
 export const boardLoader = async () => {
-  const checkAuth = await checkAuthOnLoad();
   const { id } = useAuthStore.getState().authUser || {};
-
-  if (!checkAuth || checkAuth.data?.message !== "User is authenticated") {
-    throw redirect("/login");
-  }
-
   const [boardRes, boardHistoryRes] = await Promise.all([
     getBoards(),
     boardHistory(id!),

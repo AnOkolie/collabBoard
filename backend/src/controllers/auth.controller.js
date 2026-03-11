@@ -4,22 +4,25 @@ import jwt from "jsonwebtoken";
 import { ENV } from "../utils/ENV.js";
 
 export const login = async (req, res) => {
+  console.log("calling login");
   const { email, password: userPassword } = req.body;
   if (!email || !userPassword) {
     return res.status(400).json({ error: "Email and password are required" });
   }
   try {
     const result = await pool.query(
-      "SELECT id, email, username, password FROM users WHERE email = $1",
+      "SELECT id, email, username, password, profilepic FROM users WHERE email = $1",
       [email],
     );
     if (result.rows.length === 0) {
+      console.log("no user");
       return res.status(401).json({ error: "Invalid credentials" });
     }
     const user = result.rows[0];
     // Compare the provided password with the stored hashed password
     const isPasswordValid = await bcrypt.compare(userPassword, user.password);
     if (!isPasswordValid) {
+      console.log("wrong pass");
       return res.status(401).json({ error: "Invalid credentials" });
     }
     // Generate JWT token
@@ -35,7 +38,7 @@ export const login = async (req, res) => {
       maxAge: 2 * 60 * 60 * 1000,
     });
     const { password, ...userWithoutPassword } = user;
-    res.json({
+    res.status(200).json({
       message: "Login successful",
       user: userWithoutPassword,
     });
@@ -95,13 +98,13 @@ export const checkAuth = async (req, res) => {
   try {
     const token = req.cookies.token;
     if (!token) {
-      return res.status(401).json({ error: "Not authenticated" });
+      return res.status(401).json({ error: { message: "Not authenticated" } });
     }
 
     const { sub } = jwt.verify(token, ENV.JWT_SECRET);
 
     const result = await pool.query(
-      "SELECT id, email, username FROM users WHERE id = $1",
+      "SELECT id, email, username, profilepic FROM users WHERE id = $1",
       [sub],
     );
 

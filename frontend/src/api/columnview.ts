@@ -1,6 +1,8 @@
 import { RequestMethods, RequestResolve } from "../types/requests";
 import { request } from "../utilities/requests";
 import { ColumnResponse } from "../types/columns";
+import { userObject } from "~/types/user";
+import { BoardMembersResponse } from "~/types/boards";
 
 export const getBoardColumns = async (
   boardId: string,
@@ -17,3 +19,8 @@ export const addBoardColumn = async (
     undefined,
     JSON.stringify({ title: columnTitle }),
   );
+
+export const getBoardMembers = async (
+  boardId: string,
+): Promise<RequestResolve<BoardMembersResponse>> =>
+  await request(RequestMethods.GET, `boards/members/${boardId}`);

@@ -6,13 +6,13 @@ import {
   getCard,
   moveCard,
 } from "../controllers/card.controller.js";
-import { get } from "node:http";
+import { requireAuth } from "../middleware/auth.middleware.js";
 const router = express.Router();
 
-router.post("/column/:column_id/cards", addCards);
-router.put("/cards/:id", updateCards);
-router.delete("/cards/:id", deleteCards);
-router.get("/cards/:id", getCard);
-router.patch("/cards/:id/move", moveCard);
+router.post("/column/:column_id/cards", requireAuth, addCards);
+router.put("/cards/:id", requireAuth, updateCards);
+router.delete("/cards/:id", requireAuth, deleteCards);
+router.get("/cards/:id", requireAuth, getCard);
+router.patch("/cards/:id/move", requireAuth, moveCard);
 
 export default router;

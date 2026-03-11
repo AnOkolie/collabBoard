@@ -1,0 +1,166 @@
+import {
+  Button,
+  Flex,
+  Input,
+  Modal,
+  Stack,
+  Text,
+  TextInput,
+  Title,
+} from "@mantine/core";
+import { Form } from "react-router-dom";
+import { formatDate } from "../../utilities/format";
+import { ColumnType } from "../../types/columns";
+import { BoardMembers } from "../../types/boards";
+import {
+  CANCEL_BUTTON_TEXT,
+  CREATE_BUTTON_TEXT,
+  CREATE_CARD_BUTTON_TEXT,
+  CREATE_COLUMN_DESCRIPTION,
+} from "../../constants/string";
+import { MembersModal } from "./MembersModal";
+
+type CardType = ColumnType["cards"][number];
+
+type DisclosureHandlers = {
+  open: () => void;
+  close: () => void;
+  toggle: () => void;
+};
+
+type BoardModalsProps = {
+  boardId: string;
+  selectedColumnId: string;
+  selectedCard: CardType | null;
+  boardMembers: BoardMembers[];
+  usersByName: any[];
+  searchName: string;
+  setSearchName: React.Dispatch<React.SetStateAction<string>>;
+  createColumnOpened: boolean;
+  createColumnHandlers: DisclosureHandlers;
+  createCardOpened: boolean;
+  createCardHandlers: DisclosureHandlers;
+  cardDetailsOpened: boolean;
+  cardDetailsHandlers: DisclosureHandlers;
+  membersListOpened: boolean;
+  memberListHandlers: DisclosureHandlers;
+  onInviteUser: (userId: string) => void;
+};
+
+export const BoardModals = ({
+  boardId,
+  selectedColumnId,
+  selectedCard,
+  boardMembers,
+  usersByName,
+  searchName,
+  setSearchName,
+  createColumnOpened,
+  createColumnHandlers,
+  createCardOpened,
+  createCardHandlers,
+  cardDetailsOpened,
+  cardDetailsHandlers,
+  membersListOpened,
+  memberListHandlers,
+  onInviteUser,
+}: BoardModalsProps) => {
+  return (
+    <>
+      <Modal
+        opened={createColumnOpened}
+        onClose={createColumnHandlers.close}
+        title="Add a new Column"
+        centered
+      >
+        <Form method="post">
+          <Input type="hidden" name="boardId" value={boardId} />
+          <Text>{CREATE_COLUMN_DESCRIPTION}</Text>
+          <TextInput
+            label="Column Title"
+            placeholder="e.g. To Do"
+            name="columnTitle"
+            mt="md"
+          />
+          <Flex justify="flex-end" mt="md" gap="md">
+            <Button variant="outline" onClick={createColumnHandlers.close}>
+              {CANCEL_BUTTON_TEXT}
+            </Button>
+            <Button
+              onClick={createColumnHandlers.close}
+              type="submit"
+              name="intent"
+              value="add-column"
+            >
+              {CREATE_BUTTON_TEXT}
+            </Button>
+          </Flex>
+        </Form>
+      </Modal>
+
+      <Modal
+        opened={createCardOpened}
+        onClose={createCardHandlers.close}
+        title="Add a new Card"
+        centered
+      >
+        <Form method="post">
+          <Input type="hidden" name="boardId" value={boardId} />
+          <Input type="hidden" name="columnId" value={selectedColumnId} />
+          <TextInput
+            label="Card Title"
+            placeholder="e.g. Task 1"
+            name="cardTitle"
+          />
+          <TextInput
+            label="Card Content"
+            placeholder="e.g. Task 1 content"
+            name="cardContent"
+            mt="md"
+          />
+          <Flex justify="flex-end" mt="md" gap="md">
+            <Button
+              onClick={createCardHandlers.close}
+              type="submit"
+              name="intent"
+              value="add-card"
+            >
+              {CREATE_CARD_BUTTON_TEXT}
+            </Button>
+            <Button variant="outline" onClick={createCardHandlers.close}>
+              {CANCEL_BUTTON_TEXT}
+            </Button>
+          </Flex>
+        </Form>
+      </Modal>
+
+      <Modal
+        opened={cardDetailsOpened}
+        onClose={cardDetailsHandlers.close}
+        title="Card Details"
+        centered
+      >
+        {selectedCard && (
+          <Stack gap="sm">
+            <Title order={4}>{selectedCard.title}</Title>
+            <Text>{selectedCard.content}</Text>
+            <Text size="sm" c="dimmed">
+              Updated: {formatDate(selectedCard.updated_at)}
+            </Text>
+            <Text size="sm">{selectedCard.state || "No state"}</Text>
+          </Stack>
+        )}
+      </Modal>
+
+      <MembersModal
+        opened={membersListOpened}
+        onClose={memberListHandlers.close}
+        boardMembers={boardMembers}
+        usersByName={usersByName}
+        searchName={searchName}
+        setSearchName={setSearchName}
+        onInviteUser={onInviteUser}
+      />
+    </>
+  );
+};

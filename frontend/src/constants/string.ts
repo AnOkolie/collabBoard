@@ -80,3 +80,5 @@ export const EXPORT_DATA_BUTTON_TEXT = "Export Data";
 export const ERROR_BOUNDARY_PAGE_TEXT =
   "Uh oh! Something went wrong! Please try again later or refresh the page.";
 export const PROJECT_HEADER_TEXT = "Project Dashboard";
+
+export const WELCOME_TEXT = "Welcome to Collab Board!";

@@ -8,7 +8,6 @@ interface AuthState {
   isCheckingAuth: boolean;
   hasHydrated: boolean;
   setAuthUser: (user: userObject | null) => void;
-  checkAuth: () => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -19,21 +18,6 @@ export const useAuthStore = create<AuthState>()(
       hasHydrated: false,
 
       setAuthUser: (user) => set({ authUser: user }),
-
-      checkAuth: async () => {
-        try {
-          set({ isCheckingAuth: true });
-          const user = get().authUser;
-          if (!user) return;
-
-          const res = await checkAuth(user);
-          set({ authUser: res.data?.user ?? null });
-        } catch {
-          set({ authUser: null });
-        } finally {
-          set({ isCheckingAuth: false });
-        }
-      },
     }),
     {
       name: "auth-store",

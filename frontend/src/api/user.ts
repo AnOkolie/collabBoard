@@ -1,9 +1,15 @@
-import { RequestMethods } from "../types/requests";
+import { findUserResponse } from "~/types/user";
+import { RequestMethods, RequestResolve } from "../types/requests";
 import { request } from "../utilities/requests";
 
 export const updateUser = async (
   userId: string,
-  data: { username?: string; email?: string; password?: string },
+  data: {
+    username?: string;
+    email?: string;
+    password?: string;
+    profilepic?: ArrayBuffer;
+  },
 ) =>
   await request(
     RequestMethods.PATCH,
@@ -14,3 +20,16 @@ export const updateUser = async (
 
 export const deleteUser = async (userId: string) =>
   await request(RequestMethods.DELETE, `users/${userId}`);
+
+export const searchUser = async (
+  username: string,
+): Promise<RequestResolve<findUserResponse>> =>
+  await request(RequestMethods.GET, `user/search?username=${username}`);
+
+export const sendFriendRequest = async (user_id: string, friend_id: string) =>
+  await request(
+    RequestMethods.POST,
+    "user/add-friend",
+    undefined,
+    JSON.stringify({ user_id: user_id, friend_id: friend_id }),
+  );

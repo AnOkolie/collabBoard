@@ -1,96 +1,111 @@
-import {
-  ActionIcon,
-  AppShell,
-  Burger,
-  Center,
-  Flex,
-  NavLink,
-  TextInput,
-  Text,
-} from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import {
-  IconHome,
-  IconMenu2,
-  IconMessage,
-  IconSettings,
-  IconUser,
+  AppShell,
+  Burger,
+  Flex,
+  TextInput,
+  Text,
+  NavLink,
+  ActionIcon,
+  Badge,
+} from "@mantine/core";
+import { Form, Outlet } from "react-router-dom";
+import {
   IconSearch,
   IconBell,
   IconCalendar,
+  IconUser,
+  IconMenu2,
+  IconHome,
+  IconMessage,
+  IconSettings,
   IconLogout,
 } from "@tabler/icons-react";
-import { Form } from "react-router-dom";
-import { Outlet } from "react-router-dom";
+import { SocketStatusBadge } from "./StatusBar";
 
-export function AppLayout() {
-  return (
-    <>
-      <Navbar />
-      <Outlet />
-    </>
-  );
-}
-
-export const Navbar = () => {
+export function Navbar() {
   const [opened, { toggle }] = useDisclosure();
+
   return (
     <AppShell
-      padding="md"
-      color="purple"
+      padding="lg"
       header={{ height: 60 }}
       navbar={{
-        width: 300,
+        width: opened ? 240 : 72,
         breakpoint: "sm",
         collapsed: { mobile: !opened, desktop: false },
       }}
     >
       <AppShell.Header>
         <Burger opened={opened} onClick={toggle} hiddenFrom="sm" size="sm" />
-        <Flex direction={"row"} align={"center"}>
-          <Flex
-            justify={"flex-start"}
-            style={{ flex: 1 }}
-            p={"md"}
-            align={Center}
-          >
+
+        <Flex direction="row" align="center">
+          <Flex justify="flex-start" style={{ flex: 1 }} p="md">
             <TextInput
               type="search"
               leftSection={<IconSearch size={16} />}
               placeholder="Search"
-              radius={"lg"}
+              radius="lg"
             />
           </Flex>
-          <Flex direction={"row"} gap={"md"} align={Center}>
+
+          <Flex direction="row" gap="md" align="center">
             <IconBell />
             <IconCalendar />
-            <hr />
             <IconUser />
             <Text>John Doe</Text>
           </Flex>
         </Flex>
       </AppShell.Header>
 
-      <AppShell.Navbar py={"sm"} w={{ base: opened ? 240 : 60 }}>
+      <AppShell.Navbar>
         <AppShell.Section>
-          <ActionIcon onClick={toggle} variant="transparent" color="black">
-            <IconMenu2 size={30} />
-          </ActionIcon>
+          <Flex
+            justify={opened ? "flex-start" : "flex-start"}
+            align="center"
+            px={opened ? "md" : 0}
+            mb="md"
+          >
+            <ActionIcon
+              onClick={toggle}
+              variant="subtle"
+              color="dark"
+              radius="md"
+              size="lg"
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <IconMenu2 size={22} stroke={2} />
+            </ActionIcon>
+          </Flex>
+
           <NavLink
             label={opened ? "Home" : ""}
             leftSection={<IconHome size={30} />}
             href="/"
           />
+
           <NavLink
             label={opened ? "Profile" : ""}
             leftSection={<IconUser size={30} />}
             href="/profile"
           />
+
+          <NavLink
+            label={opened ? "Search Users" : ""}
+            leftSection={<IconSearch size={30} />}
+            href="/search"
+          />
+
           <NavLink
             label={opened ? "Messages" : ""}
             leftSection={<IconMessage size={30} />}
             href="/messages"
           />
+
           <NavLink
             label={opened ? "Settings" : ""}
             leftSection={<IconSettings size={30} />}
@@ -103,8 +118,14 @@ export const Navbar = () => {
               href="logout"
             />
           </Form>
+          <SocketStatusBadge />
         </AppShell.Section>
       </AppShell.Navbar>
+
+      {/* THIS IS THE IMPORTANT PART */}
+      <AppShell.Main>
+        <Outlet />
+      </AppShell.Main>
     </AppShell>
   );
-};
+}

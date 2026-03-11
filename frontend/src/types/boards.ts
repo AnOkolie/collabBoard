@@ -20,3 +20,16 @@ export type BoardHistoryResponse = {
   message: string;
   data: Record<string, number>;
 };
+
+export type BoardMembers = {
+  id: string;
+  username: string;
+  email: string;
+  profilepic: string;
+  role: "owner" | "member" | "admin";
+};
+
+export type BoardMembersResponse = {
+  message: string;
+  data: BoardMembers[];
+};

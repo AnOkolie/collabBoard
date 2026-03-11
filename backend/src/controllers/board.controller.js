@@ -6,9 +6,10 @@ export const getBoard = async (req, res) => {
     return res.status(400).json({ error: "No user id given" });
   }
   try {
-    const result = await pool.query("SELECT * FROM boards where user_id = $1", [
-      user_id,
-    ]);
+    const result = await pool.query(
+      "SELECT b.id, b.title, b.owner_id, b.created_at, b.updated_at, b.progress, bm.role FROM boards b JOIN board_members bm ON b.id = bm.board_id WHERE bm.user_id = $1 ORDER BY b.updated_at DESC;",
+      [user_id],
+    );
 
     if (result.rows.length === 0) {
       return res.status(200).json({ message: "No boards found for this user" });
@@ -26,7 +27,6 @@ export const getBoard = async (req, res) => {
 export const addBoard = async (req, res) => {
   const { title } = req.body;
   const { user_id } = req.params;
-  console.log("userId", user_id);
 
   if (!title || !user_id) {
     return res.status(400).json({ error: "Missing required fields" });
@@ -49,6 +49,11 @@ export const addBoard = async (req, res) => {
         [board.id, defaults[i]],
       );
     }
+
+    await pool.query(
+      "INSERT INTO board_members (user_id, board_id, role) VALUES ($1,$2,$3)",
+      [user_id, board.id, "owner"],
+    );
 
     await pool.query("COMMIT");
 
@@ -75,7 +80,7 @@ export const renameBoard = async (req, res) => {
 
   try {
     const result = await pool.query(
-      "UPDATE boards SET title = $1 WHERE id = $2 RETURNING *",
+      "UPDATE boards SET title = $1, updated_at = NOW() WHERE id = $2 RETURNING *",
       [newTitle, board_id],
     );
 
@@ -95,7 +100,6 @@ export const renameBoard = async (req, res) => {
 
 export const deleteBoard = async (req, res) => {
   const { board_id } = req.params;
-  console.log("boardId", board_id);
 
   if (!board_id) {
     return res.status(400).json({ error: "Board ID is required" });
@@ -185,5 +189,59 @@ export const getAllBoardDetails = async (req, res) => {
   } catch (error) {
     console.error("Error fetching board details:", error);
     return res.status(500).json({ error: "Internal Server Error!" });
+  }
+};
+
+export const getBoardMembers = async (req, res) => {
+  const { board_id: boardId } = req.params;
+  if (!boardId) {
+    return res.status(400).json({ error: "Required fields are missing" });
+  }
+  try {
+    const boardName = ("SELECT title FROM boards WHERE id = $1", [boardId]);
+    const result = await pool.query(
+      "SELECT u.id, u.email, u.profilepic, u.username, bm.role FROM board_members AS bm LEFT JOIN users AS u on bm.user_id = u.id WHERE bm.board_id = $1",
+      [boardId],
+    );
+    if (result.rows.length === 0) {
+      if (boardName) {
+        return res
+          .status(400)
+          .json({ error: `No members for board ${boardName}` });
+      }
+      return res.status(400).json({ error: "No members for this board" });
+    }
+
+    return res
+      .status(200)
+      .json({ message: "Retrieved members for board", data: result.rows });
+  } catch (error) {
+    console.error("Error retrieving users for board", error);
+    return res.status(500).json({ error: error });
+  }
+};
+
+export const boardInvitation = async (host_id, attendee_id, board_id) => {
+  if (!host_id || !attendee_id || !board_id) {
+    return { error: "Required fields are missing" };
+  }
+  try {
+    const result = await pool.query(
+      "INSERT INTO board_invitations(board_id, invited_user_id, host_id, status) VALUES($1, $2, $3, 'pending')",
+      [board_id, attendee_id, host_id],
+    );
+    if (result.rows.length === 0) {
+      return { error: "Failed to send invite" };
+    }
+    return { message: "Invite sent", data: result.rows };
+  } catch (error) {
+    if (error.code === "23505") {
+      return {
+        error:
+          "A pending invitation has already been sent to this user for this board",
+      };
+    }
+    console.error("Error updating board_invitation DB ", error);
+    return { error: error };
   }
 };

@@ -32,7 +32,7 @@ export const renameBoard = async (
     RequestMethods.PUT,
     `boards/${boardId}`,
     undefined,
-    JSON.stringify({ title: newTitle }),
+    JSON.stringify({ newTitle: newTitle }),
   );
 
 export const deleteBoard = async (boardId: string) =>

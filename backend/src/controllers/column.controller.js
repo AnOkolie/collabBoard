@@ -7,7 +7,6 @@ export const addColumn = async (req, res) => {
   if (!boardId || !title) {
     return res.status(400).json({ error: "Board ID and title are required" });
   }
-  console.log("Adding column to boardId:", boardId, "with title:", title);
   try {
     const result = await pool.query(
       "SELECT EXISTS(SELECT 1 FROM boards WHERE id = $1)",

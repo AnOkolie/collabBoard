@@ -12,12 +12,13 @@ export const getBoardColumns = async (
 export const addBoardColumn = async (
   columnTitle: string,
   boardId: string,
+  userId: string
 ): Promise<RequestResolve<ColumnResponse>> =>
   await request(
     RequestMethods.POST,
     `boards/${boardId}/columns`,
     undefined,
-    JSON.stringify({ title: columnTitle }),
+    JSON.stringify({ title: columnTitle, userId: userId }),
   );
 
 export const getBoardMembers = async (

@@ -12,6 +12,7 @@ import {
 import { IconUserPlus } from "@tabler/icons-react";
 import { BoardMembers } from "../../types/boards";
 import { SearchUserComponent } from "../../hooks/useSearchUser";
+import { useAuthStore } from "../../zustand/authStore/useAuthStore";
 
 type MembersModalProps = {
   opened: boolean;
@@ -32,8 +33,24 @@ export const MembersModal = ({
   setSearchName,
   onInviteUser,
 }: MembersModalProps) => {
+  const currentUserId = useAuthStore.getState().authUser?.id;
+
+  let filteredNames = usersByName.filter((user) => user.id !== currentUserId);
+
+  const handleCloseComplete = () => {
+    setSearchName("");
+    usersByName = [];
+    filteredNames = [];
+  };
+
   return (
-    <Modal opened={opened} onClose={onClose} centered title="Board Members">
+    <Modal
+      opened={opened}
+      onClose={onClose}
+      centered
+      title="Board Members"
+      onExitTransitionEnd={handleCloseComplete}
+    >
       <SearchUserComponent
         searchName={searchName}
         setSearchName={setSearchName}
@@ -60,7 +77,7 @@ export const MembersModal = ({
           </Paper>
         ))}
 
-        {usersByName.map((user) => (
+        {filteredNames.map((user) => (
           <Paper key={user.id} p="sm" withBorder radius="md">
             <Group>
               <Input type="hidden" value={user.id} name="friend-user-id" />
@@ -72,13 +89,15 @@ export const MembersModal = ({
                 </Text>
               </div>
               <Flex ml="auto" gap="md">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => onInviteUser(user.id)}
-                >
-                  <IconUserPlus color="green" />
-                </Button>
+                {!boardMembers.includes(user) && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => onInviteUser(user.id)}
+                  >
+                    <IconUserPlus color="green" />
+                  </Button>
+                )}
               </Flex>
             </Group>
           </Paper>

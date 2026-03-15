@@ -7,7 +7,7 @@ import {
   Text,
   TextInput,
 } from "@mantine/core";
-import { Form } from "react-router-dom";
+import { Form, useActionData } from "react-router-dom";
 import {
   CANCEL_BUTTON_TEXT,
   CREATE_BUTTON_TEXT,
@@ -15,7 +15,8 @@ import {
   DELETE_CARD_DESCRIPTION,
   RENAME_BUTTON_TEXT,
 } from "../../constants/string";
-
+import { useEffect } from "react";
+import { useBoardSocket } from "../../context/BoardSocketContext";
 type DisclosureHandlers = {
   open: () => void;
   close: () => void;
@@ -57,6 +58,21 @@ export const BoardModals = ({
   handleCreateBoardSubmit,
   handleRenameBoardSubmit,
 }: BoardModalsProps) => {
+  const actionData = useActionData() as {
+    data: { message: string; board: { id: string } };
+  };
+  const { sendJsonMessage } = useBoardSocket();
+  useEffect(() => {
+    if (!actionData || !actionData.data) return;
+    //sendJsonMessage to subscribe
+    const { message, board } = actionData.data;
+    if (message === "Board added successfully") {
+      sendJsonMessage({
+        type: "board:join",
+        payload: { board_id: board.id },
+      });
+    }
+  }, [actionData]);
   return (
     <>
       <Modal
@@ -96,6 +112,14 @@ export const BoardModals = ({
       >
         <Flex gap="md" justify="space-evenly">
           <Button
+            onClick={() => {
+              boardActionsHandlers.close();
+              renameBoardHandlers.open();
+            }}
+          >
+            {RENAME_BUTTON_TEXT}
+          </Button>
+          <Button
             color="red"
             onClick={() => {
               boardActionsHandlers.close();
@@ -103,15 +127,6 @@ export const BoardModals = ({
             }}
           >
             {DELETE_BUTTON_TEXT}
-          </Button>
-
-          <Button
-            onClick={() => {
-              boardActionsHandlers.close();
-              renameBoardHandlers.open();
-            }}
-          >
-            {RENAME_BUTTON_TEXT}
           </Button>
         </Flex>
       </Modal>
@@ -135,6 +150,7 @@ export const BoardModals = ({
               name="intent"
               value="delete-action"
               type="submit"
+              onClick={deleteBoardHandlers.close}
             >
               {DELETE_BUTTON_TEXT}
             </Button>

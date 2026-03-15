@@ -9,14 +9,15 @@ import {
   Paper,
   Divider,
 } from "@mantine/core";
-import { useMemo, useState } from "react";
-import { useActionData, useLoaderData, useNavigate } from "react-router-dom";
+import { useMemo, useState, useEffect } from "react";
+import { useLoaderData, useNavigate } from "react-router-dom";
 import { useDisclosure } from "@mantine/hooks";
 import { IconPlus } from "@tabler/icons-react";
 import { BoardType } from "../../types/boards";
 import { BoardsGrid } from "./BoardsGrid";
 import { BoardStatsPanel } from "./BoardStatsPanel";
 import { BoardModals } from "./BoardModals";
+import { useBoardSocket } from "../../context/BoardSocketContext";
 
 type LoaderData = {
   boards: {
@@ -30,20 +31,18 @@ type LoaderData = {
 export const BoardPage = () => {
   const navigate = useNavigate();
   const loaderData = useLoaderData() as LoaderData;
-  const actionData = useActionData() as any;
 
-  const rows = loaderData?.boards?.board ?? [];
+  //const rows = loaderData?.boards?.board ?? [];
   const stats = loaderData?.stats?.data ?? {};
 
   const [boardTitle, setBoardTitle] = useState("");
   const [newBoardTitle, setNewBoardTitle] = useState("");
   const [selectedBoardId, setSelectedBoardId] = useState("");
-
+  const [rows, setRows] = useState<BoardType[]>(loaderData?.boards?.board);
   const [createBoardOpened, createBoardHandlers] = useDisclosure(false);
   const [boardActionsOpened, boardActionsHandlers] = useDisclosure(false);
   const [deleteBoardOpened, deleteBoardHandlers] = useDisclosure(false);
   const [renameBoardOpened, renameBoardHandlers] = useDisclosure(false);
-
   const boardDetails = useMemo(() => stats, [stats]);
 
   const boardProgress = useMemo(() => {
@@ -54,6 +53,11 @@ export const BoardPage = () => {
   }, [stats]);
 
   const noBoards = rows.length === 0;
+  console.log("boards:", rows);
+
+  type boardShape = {
+    data: BoardType;
+  };
 
   const handleCreateBoardSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     if (!boardTitle.trim()) {
@@ -77,6 +81,58 @@ export const BoardPage = () => {
     setSelectedBoardId(boardId);
     boardActionsHandlers.open();
   };
+  const { sendJsonMessage, lastJsonMessage, isConnected } = useBoardSocket();
+
+  useEffect(() => {
+    if (!loaderData) return;
+    setRows(loaderData.boards.board);
+  }, [loaderData]);
+  useEffect(() => {
+    if (!isConnected || !selectedBoardId) return;
+
+    sendJsonMessage({
+      type: "board:join",
+      payload: {
+        board_id: selectedBoardId,
+      },
+    });
+
+    return () => {
+      sendJsonMessage({
+        type: "board:leave",
+        payload: {
+          board_id: selectedBoardId,
+        },
+      });
+    };
+  }, [isConnected, selectedBoardId, sendJsonMessage]);
+
+  useEffect(() => {
+    if (!lastJsonMessage) return;
+    const { type } = lastJsonMessage;
+    if (type === "board:deleted") {
+      console.log("board:deleted", lastJsonMessage);
+      const deletedBoard = lastJsonMessage.payload as BoardType;
+
+      setRows((prevRows) =>
+        prevRows.filter((item) => item.id !== deletedBoard.id),
+      );
+    }
+    if (type === "board:updated") {
+      const updatedBoard = lastJsonMessage.payload as BoardType;
+
+      setRows((prevRows) =>
+        prevRows.filter((item) => item.id !== updatedBoard.id),
+      );
+      setRows([...rows, updatedBoard]);
+    }
+    if (type === "board:joined") {
+      console.log("board page board:joined: ", lastJsonMessage.payload);
+      const newBoard = lastJsonMessage.payload as BoardType;
+      console.log(newBoard);
+      setRows([...rows, newBoard]);
+    }
+  }, [lastJsonMessage]);
 
   return (
     <Container size="xl" py="xl">

@@ -18,24 +18,22 @@ import { signupAction } from "./components/Signup/action";
 import { userProfileAction } from "./components/UserProfile/action";
 import { navbarAction } from "./components/Navbar/action";
 import { authLoader } from "./components/Navbar/loader";
-import { loginLoader } from "./components/Login/loader";
 import { ModalsProvider } from "@mantine/modals";
 import { Notifications } from "@mantine/notifications";
 import { SearchUser } from "./components/SearchUser/SearchUser";
 import { searchLoader } from "./components/SearchUser/loader";
 import { searchAction } from "./components/SearchUser/action";
+import { activityCenterLoader } from "./components/ActivityCenter/loader";
 
 const router = createBrowserRouter([
   {
     path: "/login",
     element: <Login />,
-    loader: loginLoader,
     action: loginAction,
   },
   {
     path: "/signup",
     element: <Signup />,
-    loader: loginLoader,
     action: signupAction,
   },
   {
@@ -70,6 +68,10 @@ const router = createBrowserRouter([
         element: <SearchUser />,
         loader: searchLoader,
         action: searchAction,
+      },
+      {
+        path: "activity/:id",
+        loader: activityCenterLoader,
       },
       {
         path: "logout",

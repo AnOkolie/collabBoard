@@ -19,6 +19,8 @@ import {
   CREATE_COLUMN_DESCRIPTION,
 } from "../../constants/string";
 import { MembersModal } from "./MembersModal";
+import { useState } from "react";
+import { useAuthStore } from "../../zustand/authStore/useAuthStore";
 
 type CardType = ColumnType["cards"][number];
 
@@ -65,6 +67,8 @@ export const BoardModals = ({
   memberListHandlers,
   onInviteUser,
 }: BoardModalsProps) => {
+  const [titleText, setTitleText] = useState("");
+  const userId = useAuthStore.getState().authUser?.id;
   return (
     <>
       <Modal
@@ -75,6 +79,7 @@ export const BoardModals = ({
       >
         <Form method="post">
           <Input type="hidden" name="boardId" value={boardId} />
+          <Input type="hidden" name="userId" value={userId} />
           <Text>{CREATE_COLUMN_DESCRIPTION}</Text>
           <TextInput
             label="Column Title"
@@ -103,6 +108,7 @@ export const BoardModals = ({
         onClose={createCardHandlers.close}
         title="Add a new Card"
         centered
+        onExitTransitionEnd={() => setTitleText("")}
       >
         <Form method="post">
           <Input type="hidden" name="boardId" value={boardId} />
@@ -111,7 +117,10 @@ export const BoardModals = ({
             label="Card Title"
             placeholder="e.g. Task 1"
             name="cardTitle"
+            maxLength={25}
+            onChange={(e) => setTitleText(e.target.value)}
           />
+          <Text c={"dimmed"}>{titleText.length}/25</Text>
           <TextInput
             label="Card Content"
             placeholder="e.g. Task 1 content"

@@ -31,13 +31,14 @@ export const BoardWorkflow = ({
         {boardColumns.map((column) => (
           <Grid.Col span={1} key={column.id}>
             <DroppableColumn column={column} onAddCard={onAddCard}>
-              {column.cards.map((card) => (
-                <DraggableCard
-                  key={card.id}
-                  card={card}
-                  onClick={() => onOpenCardDetails(card)}
-                />
-              ))}
+              {column.cards &&
+                column.cards.map((card) => (
+                  <DraggableCard
+                    key={card.id}
+                    card={card}
+                    onClick={() => onOpenCardDetails(card)}
+                  />
+                ))}
             </DroppableColumn>
           </Grid.Col>
         ))}

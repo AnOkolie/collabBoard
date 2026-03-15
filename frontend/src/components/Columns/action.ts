@@ -9,6 +9,7 @@ export const columnAction = async ({ request }: { request: Request }) => {
       return await addBoard(
         formData.get("boardId") as string,
         formData.get("columnTitle") as string,
+        formData.get("userId") as string
       );
     case "add-card":
       return await addCard(
@@ -22,8 +23,8 @@ export const columnAction = async ({ request }: { request: Request }) => {
   }
 };
 
-const addBoard = async (boardId: string, columnTitle: string) => {
-  return addBoardColumn(columnTitle, boardId);
+const addBoard = async (boardId: string, columnTitle: string, userId: string) => {
+  return addBoardColumn(columnTitle, boardId, userId);
 };
 
 const addCard = async (

@@ -10,9 +10,9 @@ import {
   Input,
   Button,
 } from "@mantine/core";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { IconUserPlus } from "@tabler/icons-react";
-import { userObject } from "../../types/user";
+import { findUserBody, SearchResponse, userObject } from "../../types/user";
 import { useBoardSocket } from "../../context/BoardSocketContext";
 import { useAuthStore } from "../../zustand/authStore/useAuthStore";
 import { SearchUserComponent } from "../../hooks/useSearchUser";
@@ -23,7 +23,7 @@ export const SearchUser = () => {
     useSearchUser(800);
   const [friendId, setFriendId] = useState("");
   const { sendJsonMessage, isConnected } = useBoardSocket();
-
+  // const [filteredNames, setFilteredNames] = useState<findUserBody[]>([]);
   const whisperToSocket = (targetFriendId: string) => {
     const currUser = useAuthStore.getState().authUser;
     if (!currUser) return;
@@ -37,6 +37,10 @@ export const SearchUser = () => {
       message: "Lets be friends please",
     });
   };
+
+  const currentUserId = useAuthStore.getState().authUser?.id;
+
+  const filteredNames = usersByName.filter((user) => user.id !== currentUserId);
 
   return (
     <Container>
@@ -54,7 +58,7 @@ export const SearchUser = () => {
       )}
 
       <Stack mt="md">
-        {usersByName.map((user) => (
+        {filteredNames.map((user) => (
           <Paper key={user.id} p="sm" withBorder radius="md">
             <Group>
               <Input type="hidden" value={user.id} name="friend-user-id" />

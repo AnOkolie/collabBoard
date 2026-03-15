@@ -1,4 +1,5 @@
 import { pool } from "../utils/db.js";
+import { broadcastBoard } from "../utils/socket.js";
 
 export const addCards = async (req, res) => {
   const { content: content, title: title, board_id: boardId } = req.body;
@@ -10,7 +11,15 @@ export const addCards = async (req, res) => {
       [content, column_id, title],
     );
     await updateBoardProgress(boardId);
-
+    const message = {
+      type: "card:created",
+      payload: {
+        boardId: boardId,
+        columnId: column_id,
+        card: result.rows[0],
+      },
+    };
+    broadcastBoard(boardId, message);
     res.json({ message: "Card added successfully", card: result.rows[0] });
     await pool.query("COMMIT");
   } catch (error) {
@@ -31,6 +40,19 @@ export const updateCards = async (req, res) => {
     if (result.rows.length === 0) {
       return res.status(404).json({ error: "Card not found" });
     }
+    const board = await pool.query(
+      "SELECT board_id FROM columns where id = $1",
+      [column_id],
+    );
+    const board_id = board.rows[0].board_id;
+    const message = {
+      type: "card:updated",
+      payload: {
+        boardId: board_id,
+        card: result.rows[0],
+      },
+    };
+    broadcastBoard(board_id, message);
     res.json({ message: "Card updated successfully", card: result.rows[0] });
   } catch (error) {
     console.error("Error updating card:", error);
@@ -48,6 +70,19 @@ export const deleteCards = async (req, res) => {
     if (result.rows.length === 0) {
       return res.status(404).json({ error: "Card not found" });
     }
+    const board = await pool.query(
+      "SELECT board_id FROM columns where id = $1",
+      [column_id],
+    );
+    const board_id = board.rows[0];
+    const message = {
+      type: "card:deleted",
+      payload: {
+        boardId: board_id,
+        card: result.rows[0],
+      },
+    };
+    broadcastBoard(board_id, message);
     res.json({ message: "Card deleted successfully", card: result.rows[0] });
   } catch (error) {
     console.error("Error deleting card:", error);
@@ -77,13 +112,27 @@ export const moveCard = async (req, res) => {
     const { column_id: columnId, board_id: boardId } = req.body;
 
     await pool.query("BEGIN");
+    const fromColumn = await pool.query(
+      "SELECT column_id FROM cards where id = $1",
+      [id],
+    );
     await pool.query(
       "UPDATE cards SET column_id = $1, updated_at = NOW() WHERE id = $2",
       [columnId, id],
     );
 
     await updateBoardProgress(boardId);
-
+    const fromColumnId = fromColumn.rows[0].column_id;
+    const message = {
+      type: "card:moved",
+      payload: {
+        boardId: boardId,
+        cardId: id,
+        fromColumnId: fromColumnId,
+        toColumnId: columnId,
+      },
+    };
+    broadcastBoard(boardId, message);
     res.status(200).json({ message: "Card moved successfully" });
     await pool.query("COMMIT");
   } catch (error) {
@@ -117,10 +166,19 @@ const updateBoardProgress = async (boardId) => {
     const totalCardsCount = parseInt(totalCardsCountResult.rows[0].count, 10);
     const progress =
       totalCardsCount > 0 ? (completedCardsCount / totalCardsCount) * 100 : 0;
-    await pool.query("UPDATE boards SET progress = $1 WHERE id = $2", [
-      progress,
-      boardId,
-    ]);
+    const boardProgress = await pool.query(
+      "UPDATE boards SET progress = $1 WHERE id = $2 RETURNING *",
+      [progress, boardId],
+    );
+    if (boardProgress.rows.length > 0) {
+      broadcastBoard(
+        boardId,
+        JSON.stringify({
+          type: "board:update",
+          payload: boardProgress.rows[0],
+        }),
+      );
+    }
   } catch (error) {
     console.error("Error updating board progress:", error);
   }

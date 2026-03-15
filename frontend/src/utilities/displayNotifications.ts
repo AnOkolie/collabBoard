@@ -2,7 +2,7 @@ import { notifications } from "@mantine/notifications";
 
 export const displayNotifications = (
   title: string,
-  message: string,
+  message: string | React.ReactNode,
   color: string,
 ) => {
   notifications.show({

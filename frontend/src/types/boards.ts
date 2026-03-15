@@ -33,3 +33,16 @@ export type BoardMembersResponse = {
   message: string;
   data: BoardMembers[];
 };
+
+export type GetBoardInvites = {
+  message: string;
+  data: BoardInvitesStructure[];
+};
+
+export type BoardInvitesStructure = {
+  title: string;
+  host_id: string;
+  board_id: string;
+  id: string;
+  alert: string;
+};

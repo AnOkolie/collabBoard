@@ -1,4 +1,5 @@
 import { pool } from "../utils/db.js";
+import { broadcastBoard } from "../utils/socket.js";
 
 export const getBoard = async (req, res) => {
   const { user_id } = req.params;
@@ -35,8 +36,8 @@ export const addBoard = async (req, res) => {
   try {
     await pool.query("BEGIN");
     const boardResult = await pool.query(
-      "INSERT INTO boards (title, user_id, created_at) VALUES ($1, $2, NOW()) RETURNING id",
-      [title, user_id],
+      "INSERT INTO boards (title, user_id, created_at, owner_id) VALUES ($1, $2, NOW(), $3) RETURNING id",
+      [title, user_id, user_id],
     );
 
     const board = boardResult.rows[0];
@@ -87,7 +88,7 @@ export const renameBoard = async (req, res) => {
     if (result.rows.length === 0) {
       return res.status(404).json({ error: "Board not found" });
     }
-
+    broadcastBoard(board_id, { type: "board:update", payload: result.rows[0] });
     return res.status(200).json({
       message: "Board updated successfully",
       board: result.rows[0],
@@ -114,7 +115,10 @@ export const deleteBoard = async (req, res) => {
     if (result.rows.length === 0) {
       return res.status(404).json({ error: "Board not found" });
     }
-
+    broadcastBoard(board_id, {
+      type: "board:deleted",
+      payload: result.rows[0],
+    });
     return res.status(200).json({
       message: "Board deleted successfully",
       board: result.rows[0],
@@ -226,14 +230,26 @@ export const boardInvitation = async (host_id, attendee_id, board_id) => {
     return { error: "Required fields are missing" };
   }
   try {
+    const board = await pool.query("SELECT title FROM boards where id = $1", [
+      board_id,
+    ]);
+    if (board.rows.length === 0) {
+      return { error: "This board doesnt exist" };
+    }
     const result = await pool.query(
-      "INSERT INTO board_invitations(board_id, invited_user_id, host_id, status) VALUES($1, $2, $3, 'pending')",
+      "INSERT INTO board_invitations(board_id, invited_user_id, host_id, status) VALUES($1, $2, $3, 'pending') RETURNING *",
       [board_id, attendee_id, host_id],
     );
     if (result.rows.length === 0) {
       return { error: "Failed to send invite" };
     }
-    return { message: "Invite sent", data: result.rows };
+    const boardTitle = board.rows[0].title;
+    return {
+      message: "Invite sent",
+      data: result.rows,
+      title: boardTitle,
+      alert: `You have received a board invite for ${boardTitle}`,
+    };
   } catch (error) {
     if (error.code === "23505") {
       return {
@@ -242,6 +258,122 @@ export const boardInvitation = async (host_id, attendee_id, board_id) => {
       };
     }
     console.error("Error updating board_invitation DB ", error);
-    return { error: error };
+    return { error: "Internal Server error" };
+  }
+};
+
+export const updateBoardInviteState = async (
+  board_id,
+  user_id,
+  host_id,
+  state,
+) => {
+  if (!board_id || !user_id || !host_id || !state) {
+    return { error: "Required fields are missing" };
+  }
+
+  try {
+    await pool.query("BEGIN");
+
+    const inviteResult = await pool.query(
+      `
+      UPDATE board_invitations
+      SET status = $1, responded_at = NOW()
+      WHERE board_id = $2
+        AND invited_user_id = $3
+        AND host_id = $4
+        AND status = 'pending'
+      RETURNING *
+      `,
+      [state, board_id, user_id, host_id],
+    );
+
+    if (inviteResult.rows.length === 0) {
+      await pool.query("ROLLBACK");
+      return { error: "Failed to update invite status" };
+    }
+
+    // Only add member if invite was accepted
+    if (state === "accepted") {
+      const memberResult = await pool.query(
+        `
+        INSERT INTO board_members (board_id, user_id, role)
+        VALUES ($1, $2, 'member')
+        ON CONFLICT (board_id, user_id) DO NOTHING
+        RETURNING *
+        `,
+        [board_id, user_id],
+      );
+
+      // Optional: if you expect a fresh insert every time
+      // if (memberResult.rows.length === 0) {
+      //   await pool.query("ROLLBACK");
+      //   return { error: "Failed to update board members" };
+      // }
+    }
+
+    const newBoard = await pool.query(
+      `
+      SELECT
+        b.id,
+        b.title,
+        b.owner_id,
+        b.created_at,
+        b.updated_at,
+        b.progress,
+        bm.role
+      FROM boards b
+      JOIN board_members bm
+        ON b.id = bm.board_id
+      WHERE bm.board_id = $1
+        AND bm.user_id = $2
+      `,
+      [board_id, user_id],
+    );
+
+    await pool.query("COMMIT");
+
+    // accepted -> should return board access
+    if (state === "accepted") {
+      if (newBoard.rows.length === 0) {
+        return { error: "Board does not exist or membership was not created" };
+      }
+      return newBoard.rows[0];
+    }
+
+    // declined/cancelled -> no board membership to return
+    return inviteResult.rows[0];
+  } catch (error) {
+    await pool.query("ROLLBACK");
+    console.error("Error updating board_invitation DB ", error);
+    return { error: "Internal Server error" };
+  }
+};
+
+export const fetchBoardInvites = async (req, res) => {
+  const { user_id } = req.params;
+  if (!user_id) {
+    return res.status(400).json({ error: "Required fields are missing" });
+  }
+  try {
+    const result = await pool.query(
+      "SELECT b.title, bi.host_id, bi.board_id FROM board_invitations AS bi LEFT JOIN boards AS b on bi.board_id = b.id WHERE invited_user_id = $1 and status = 'pending'",
+      [user_id],
+    );
+    if (result.rows.length === 0) {
+      return res.status(400).json({ error: "No invites found for this user" });
+    }
+    const invites = result.rows.map((invite) => ({
+      ...invite,
+      alert: `You have received a board invite for ${invite.title}`,
+    }));
+
+    return res.status(200).json({
+      message: "Board invites retrieved",
+      data: invites,
+    });
+  } catch (error) {
+    console.error("error retrieving board invites", error);
+    return res.status(500).json({ error: "Internal server error" });
   }
 };

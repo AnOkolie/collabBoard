@@ -1,4 +1,4 @@
-import { Container, Paper, Stack, Divider } from "@mantine/core";
+import { Container, Paper, Stack, Divider, Group, Button } from "@mantine/core";
 import { useEffect, useState } from "react";
 import { useActionData, useLoaderData } from "react-router-dom";
 import { useDisclosure } from "@mantine/hooks";
@@ -63,9 +63,12 @@ export const ColumnView = () => {
 
   useEffect(() => {
     if (!actionData) return;
-
     if (actionData.error) {
-      displayNotifications("Column error", actionData.error.error, "red");
+      displayNotifications(
+        "Column error",
+        actionData.error.message.error,
+        "red",
+      );
     } else {
       displayNotifications(
         "Action completed",
@@ -76,27 +79,135 @@ export const ColumnView = () => {
   }, [actionData]);
 
   useEffect(() => {
-    console.log("maybe response: ", lastJsonMessage);
+    if (!isConnected || !boardId) return;
+
+    sendJsonMessage({
+      type: "board:join",
+      payload: {
+        board_id: boardId,
+      },
+    });
+
+    return () => {
+      sendJsonMessage({
+        type: "board:leave",
+        payload: {
+          board_id: boardId,
+        },
+      });
+    };
+  }, [isConnected, boardId, sendJsonMessage]);
+
+  useEffect(() => {
     if (!lastJsonMessage) return;
-    const type = lastJsonMessage.type;
+
+    const { type } = lastJsonMessage;
+
     switch (type) {
-      case "board-invite":
-        displayNotifications(
-          "Board Invitation",
-          lastJsonMessage?.message!,
-          "green",
+      case "column:created": {
+        console.log("created console");
+        const { payload } = lastJsonMessage;
+        const newColumn = payload;
+        console.log("new column: ", newColumn);
+        setBoardColumns([...boardColumns, newColumn]);
+        break;
+      }
+      case "column:deleted": {
+        const { payload } = lastJsonMessage;
+        const deletedColumn = payload;
+        setBoardColumns((prevColumn) =>
+          prevColumn.filter((column) => column.id !== deletedColumn.id),
         );
         break;
-      case "error":
-        console.log(lastJsonMessage.message);
-        displayNotifications(
-          "Board Invitation",
-          lastJsonMessage.message,
-          "red",
+      }
+      case "column:updated": {
+        const { payload } = lastJsonMessage;
+        const updatedColumn = payload;
+        setBoardColumns((prevColumn) =>
+          prevColumn.filter((column) => column.id !== updatedColumn.id),
+        );
+        setBoardColumns([...boardColumns, updatedColumn]);
+        break;
+      }
+      case "card:created": {
+        const { payload } = lastJsonMessage;
+        const { columnId, card } = payload;
+
+        setBoardColumns((prev) =>
+          prev.map((column) =>
+            column.id === columnId
+              ? { ...column, cards: [...column.cards, card] }
+              : column,
+          ),
         );
         break;
+      }
+
+      case "card:moved": {
+        console.log("card:moved", lastJsonMessage);
+        const { payload } = lastJsonMessage;
+        const { cardId, fromColumnId, toColumnId } = payload;
+
+        setBoardColumns((prev) => {
+          let movedCard: CardType | null = null;
+
+          const next = prev.map((column) => {
+            if (column.id === fromColumnId) {
+              const found = column.cards.find((c) => c.id === cardId);
+              if (found) movedCard = { ...found, column_id: toColumnId };
+
+              return {
+                ...column,
+                cards: column.cards.filter((c) => c.id !== cardId),
+              };
+            }
+
+            return column;
+          });
+
+          if (!movedCard) return prev;
+
+          return next.map((column) =>
+            column.id === toColumnId
+              ? { ...column, cards: [...column.cards, movedCard!] }
+              : column,
+          );
+        });
+        break;
+      }
+
+      case "card:updated": {
+        const { payload } = lastJsonMessage;
+        const { card } = payload;
+
+        setBoardColumns((prev) =>
+          prev.map((column) => ({
+            ...column,
+            cards: column.cards.map((c) => (c.id === card.id ? card : c)),
+          })),
+        );
+        break;
+      }
+
+      case "card:deleted": {
+        const { payload } = lastJsonMessage;
+        const { cardId, columnId } = payload;
+
+        setBoardColumns((prev) =>
+          prev.map((column) =>
+            column.id === columnId
+              ? {
+                  ...column,
+                  cards: column.cards.filter((c) => c.id !== cardId),
+                }
+              : column,
+          ),
+        );
+        break;
+      }
+
       default:
-        console.log("invalid case");
+        break;
     }
   }, [lastJsonMessage]);
 

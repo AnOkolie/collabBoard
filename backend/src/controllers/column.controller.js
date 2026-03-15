@@ -1,11 +1,13 @@
 import { pool } from "../utils/db.js";
+import { broadcastBoard } from "../utils/socket.js";
 
 export const addColumn = async (req, res) => {
   const { id: boardId } = req.params;
-  const { title } = req.body;
+  const { title, userId } = req.body;
+  console.log("add column id is:", userId);
 
-  if (!boardId || !title) {
-    return res.status(400).json({ error: "Board ID and title are required" });
+  if (!boardId || !title || !userId) {
+    return res.status(400).json({ error: "Required fields are missing" });
   }
   try {
     const result = await pool.query(
@@ -15,11 +17,30 @@ export const addColumn = async (req, res) => {
     if (!result.rows[0].exists) {
       return res.status(404).json({ error: "Board not found" });
     }
+    const userRole = await pool.query(
+      "SELECT role FROM board_members WHERE board_id = $1 and user_id = $2",
+      [boardId, userId],
+    );
+    console.log("useRole: ", userRole);
+    if (!userRole.rows[0].role) {
+      return res
+        .status(404)
+        .json({ error: "This user is not a member of this board" });
+    }
+    if (userRole.rows[0].role === "member") {
+      return res.status(404).json({
+        error: "Only the board owner or admin can create a new column",
+      });
+    }
     const newColumn = await pool.query(
       "INSERT INTO columns (title, board_id) VALUES ($1, $2) RETURNING *",
       [title, boardId],
     );
-    res.json({
+    broadcastBoard(boardId, {
+      type: "column:created",
+      payload: newColumn.rows[0],
+    });
+    return res.json({
       message: "Column added successfully",
       column: newColumn.rows[0],
     });
@@ -51,13 +72,47 @@ export const deleteColumn = async (req, res) => {
     if (response.rows.length === 0) {
       return res.status(404).json({ error: "Column not found" });
     }
-    res.json({
+    broadcastBoard(boardId, {
+      type: "column:deleted",
+      payload: response.rows[0],
+    });
+    return res.json({
       message: "Column deleted successfully",
       column: response.rows[0],
     });
   } catch (error) {
     console.error("Error deleting column:", error);
     res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+export const renameColumn = async (req, res) => {
+  const { columnId } = req.params;
+  const { new_name } = req.body;
+  if (!columnId || !new_name) {
+    return res.status(400).json({ error: "Required fields are missing" });
+  }
+  try {
+    const response = await pool.query(
+      "UPDATE columns SET title = $1 WHERE id = $2 RETURNING *",
+      [new_name, columnId],
+    );
+    if (response.rows.length === 0) {
+      return res
+        .status(400)
+        .json({ error: "No columns found with the matching column id" });
+    }
+    broadcastBoard(boardId, {
+      type: "column:created",
+      payload: response.rows[0],
+    });
+    return res.status(200).json({
+      message: "Column successfully updated",
+      column: response.rows[0],
+    });
+  } catch (error) {
+    console.log("Error updating the columns name: ", error);
+    return res.status(500).json({ error: "Internal server error" });
   }
 };
 

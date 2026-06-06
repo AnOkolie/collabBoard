@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
 import cookie from "cookie";
-import { ENV } from "../utils/ENV.js";
+import { ENV } from "../utils/env.js";
 import { pool } from "../db/db.js";
 
 export const socketAuthMiddleware = async (req) => {

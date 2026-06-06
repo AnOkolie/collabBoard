@@ -1,5 +1,5 @@
 import { createClient } from "redis";
-import { ENV } from "../src/utils/ENV.js";
+import { ENV } from "../src/utils/env.js";
 
 export const publisher = createClient({ url: ENV.REDIS_URL });
 publisher.on("error", (err) => {

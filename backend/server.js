@@ -4,7 +4,7 @@ import http from "http";
 import path from "path";
 import cookieParser from "cookie-parser";
 import { test } from "./src/db/db.js";
-import { ENV } from "./src/utils/ENV.js";
+import { ENV } from "./src/utils/env.js";
 
 import boardRoutes from "./src/routes/board.route.js";
 import cardRoutes from "./src/routes/card.route.js";

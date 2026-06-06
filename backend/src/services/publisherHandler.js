@@ -1,7 +1,7 @@
 import { boardChannel } from "../../redis/channel.js";
 import { getConnCount, onlineUserList } from "../../redis/hash.js";
 import { publisher } from "../../redis/publisher.js";
-import { publishMessage } from "../DB/redis.js";
+import { publishMessage } from "../db/redis.js";
 import { getBoardRoom } from "../websockets/room.js";
 
 export const publisherBoardUpdate = async (

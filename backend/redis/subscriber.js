@@ -1,6 +1,6 @@
 import { createClient } from "redis";
 import { getBoardRoom } from "../src/websockets/room.js";
-import { ENV } from "../src/utils/ENV.js";
+import { ENV } from "../src/utils/env.js";
 
 export const subscriber = createClient({ url: ENV.REDIS_URL });
 

@@ -1,6 +1,6 @@
 import { createClient } from "redis";
 import { prisma } from "../src/db/prisma.js";
-import { ENV } from "../src/utils/ENV.js";
+import { ENV } from "../src/utils/env.js";
 import { use } from "react";
 export const hash = createClient({ url: ENV.REDIS_URL });
 

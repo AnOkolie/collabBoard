@@ -3,7 +3,7 @@ import express from "express";
 import http from "http";
 import path from "path";
 import cookieParser from "cookie-parser";
-import { test } from "./src/utils/db.js";
+import { test } from "./src/db/db.js";
 import { ENV } from "./src/utils/ENV.js";
 
 import boardRoutes from "./src/routes/board.route.js";
@@ -12,8 +12,9 @@ import columnRoutes from "./src/routes/columns.route.js";
 import authRoutes from "./src/routes/auth.route.js";
 import userRoutes from "./src/routes/user.route.js";
 
-import { wss, webSocketSetup } from "./src/utils/socket.js";
+import { wss, webSocketSetup } from "./src/websockets/socket.js";
 import { socketAuthMiddleware } from "./src/middleware/socket.middleware.js";
+import { initSubscriber } from "./redis/subscriber.js";
 
 const app = express();
 const server = http.createServer(app);
@@ -38,7 +39,7 @@ server.on("upgrade", async (req, socket, head) => {
 });
 
 app.use(express.json({ limit: "5mb" }));
-app.use(cors({ origin: ENV.CLIENT_URL, credentials: true }));
+app.use(cors({ origin: process.env.CLIENT_URL, credentials: true }));
 app.use(cookieParser());
 
 app.use(
@@ -47,6 +48,9 @@ app.use(
     .Router()
     .get("/", (req, res) => res.json({ message: "Welcome to the API" })),
 );
+app.get("/api/health", (req, res) => {
+  res.status(200).json({ ok: true });
+});
 
 app.use("/api", boardRoutes);
 app.use("/api", userRoutes);
@@ -54,7 +58,11 @@ app.use("/api/auth", authRoutes);
 app.use("/api", cardRoutes);
 app.use("/api", columnRoutes);
 
-server.listen(port, () => {
-  console.log(`Server running on port ${port}`);
-  test();
-});
+const startServer = async () => {
+  initSubscriber();
+  server.listen(port, () => {
+    console.log(`Server running on port ${port}`);
+    test();
+  });
+};
+startServer();

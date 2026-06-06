@@ -38,10 +38,8 @@ export const BoardSocketProvider = ({ children }: { children: ReactNode }) => {
       : null;
 
   const handleClick = (response: "accepted" | "declined") => {
-    console.log("handle invite response");
     const myId = useAuthStore.getState().authUser?.id;
     if (!requestBoardId.current || !requestUserId.current || !myId) return;
-    console.log("sending invite response...");
     sendJsonMessage({
       type: "board-invitation-response",
       board_id: requestBoardId.current,
@@ -57,10 +55,8 @@ export const BoardSocketProvider = ({ children }: { children: ReactNode }) => {
 
     switch (type) {
       case "board-invite":
-        console.log("board_invite: ", typedLastJsonMessage);
         const boardId = typedLastJsonMessage.payload.board_id;
         const host_id = typedLastJsonMessage.payload.host_id;
-        console.log(`board_id: ${boardId} and host_id: ${host_id}`);
         if (!boardId || !host_id) return;
         requestBoardId.current = boardId;
         requestUserId.current = host_id;
@@ -87,12 +83,10 @@ export const BoardSocketProvider = ({ children }: { children: ReactNode }) => {
         );
         break;
       case "board:joined":
-        console.log("board:joined message");
         const { message } = typedLastJsonMessage;
         displayNotifications("Accepted", message, "green");
         break;
       case "error":
-        console.log(typedLastJsonMessage.message);
         displayNotifications(
           "Board Invitation",
           typedLastJsonMessage.message,
@@ -100,7 +94,6 @@ export const BoardSocketProvider = ({ children }: { children: ReactNode }) => {
         );
         break;
       default:
-        console.log("invalid case");
     }
   }, [typedLastJsonMessage]);
 

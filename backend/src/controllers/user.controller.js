@@ -1,5 +1,5 @@
 import { profile } from "node:console";
-import { pool } from "../utils/db.js";
+import { pool } from "../db/db.js";
 import bcrypt from "bcrypt";
 import cloudinary from "../utils/cloudinary.js";
 
@@ -125,5 +125,24 @@ export const findUserByName = async (req, res) => {
   } catch (error) {
     console.error("Error finding user:", error);
     return res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+export const getProfilePicture = async (user_id) => {
+  console.log("find profile for user: ", user_id);
+  if (!user_id) return { error: "Missing user Id!" };
+
+  try {
+    const profile = await pool.query(
+      "SELECT profilepic FROM users where id = $1",
+      [user_id],
+    );
+    console.log("find profile response: ", profile);
+    if (profile.row.length === 0) {
+      return { error: "Invalid user Id" };
+    }
+    return { message: "Profile retrieved", profilepic: profile.rows[0] };
+  } catch (err) {
+    console.log({ error: "Error retrieving profile:", err });
   }
 };

@@ -1,7 +1,6 @@
-import { pool } from "../utils/db.js";
+import { pool } from "../db/db.js";
 
 export const pendingFriend = async (user_id, friend_id) => {
-  console.log("pending friends");
   if (!user_id || !friend_id) {
     return { error: "Required fields are missing" };
   }

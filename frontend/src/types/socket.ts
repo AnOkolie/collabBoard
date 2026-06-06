@@ -1,6 +1,7 @@
 import { ReadyState } from "react-use-websocket";
 import { CardType, ColumnType } from "./columns";
 import { BoardType } from "./boards";
+import { OnlineUsers } from "./user";
 
 export type SocketMessage =
   | {
@@ -95,6 +96,14 @@ export type SocketMessage =
       payload: {
         board_id: string;
       };
+    }
+  | {
+      type: "updateOnline";
+      payload: {
+        user_id: string;
+        profilePic: string;
+        activity: string;
+      };
     };
 
 export type BoardSocketMessage = {
@@ -182,6 +191,31 @@ export type IncomingBoardEvent =
   | {
       type: "column:deleted";
       payload: ColumnType;
+    }
+  | {
+      type: "online-users:update";
+      data: OnlineUsers;
+    }
+  | {
+      type: "offline-users:update";
+      data: OnlineUsers;
+    }
+  | {
+      type: "online-users:list";
+      data: OnlineUsers[];
+    }
+  | {
+      type: "user:joined";
+      payload: OnlineUsers;
+    }
+  | {
+      type: "user:left";
+      payload: OnlineUsers;
+    }
+  | {
+      type: "user-joined:init";
+      user_id: string;
+      payload: OnlineUsers[];
     }
   | {
       type: "error";

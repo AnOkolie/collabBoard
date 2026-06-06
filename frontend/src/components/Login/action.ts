@@ -14,7 +14,6 @@ export const loginAction = async ({ request }: ActionFunctionArgs) => {
     formData.get("email") as string,
     formData.get("password") as string,
   );
-  console.log(response);
   if (response.error && !response.data) {
     return {
       error: response.error.message || "Login failed",

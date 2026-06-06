@@ -35,7 +35,6 @@ export const Login = () => {
     setIsSubmitting(false);
     if (!actionData) return;
     if (actionData.error) {
-      console.log(actionData);
       displayNotifications("Login error", actionData.error.error, "red");
     } else {
       navigate("/");

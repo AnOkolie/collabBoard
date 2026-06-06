@@ -1,12 +1,5 @@
 import { useDroppable } from "@dnd-kit/core";
-import {
-  ActionIcon,
-  Paper,
-  Stack,
-  Text,
-  Group,
-  TextInput,
-} from "@mantine/core";
+import { ActionIcon, Paper, Stack, Group, TextInput } from "@mantine/core";
 import { IconPlus } from "@tabler/icons-react";
 import type { ColumnType } from "../../types/columns";
 import { useState } from "react";
@@ -25,7 +18,6 @@ export const DroppableColumn = ({
   const { setNodeRef, isOver } = useDroppable({
     id: column.id,
   });
-  const [columnTitle, setColumnTitle] = useState("");
 
   return (
     <Paper

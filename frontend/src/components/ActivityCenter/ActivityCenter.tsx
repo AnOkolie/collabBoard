@@ -43,10 +43,8 @@ export const ActivityCenter = ({
   );
 
   const handleClick = (response: "accepted" | "declined") => {
-    console.log("handle invite response");
     const myId = useAuthStore.getState().authUser?.id;
     if (!requestBoardId.current || !requestUserId.current || !myId) return;
-    console.log("sending invite response...");
     sendJsonMessage({
       type: "board-invitation-response",
       board_id: requestBoardId.current,

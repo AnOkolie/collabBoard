@@ -1,10 +1,9 @@
-import { pool } from "../utils/db.js";
+import { pool } from "../db/db.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { ENV } from "../utils/ENV.js";
 
 export const login = async (req, res) => {
-  console.log("calling login");
   const { email, password: userPassword } = req.body;
   if (!email || !userPassword) {
     return res.status(400).json({ error: "Email and password are required" });
@@ -15,14 +14,12 @@ export const login = async (req, res) => {
       [email],
     );
     if (result.rows.length === 0) {
-      console.log("no user");
       return res.status(401).json({ error: "Invalid credentials" });
     }
     const user = result.rows[0];
     // Compare the provided password with the stored hashed password
     const isPasswordValid = await bcrypt.compare(userPassword, user.password);
     if (!isPasswordValid) {
-      console.log("wrong pass");
       return res.status(401).json({ error: "Invalid credentials" });
     }
     // Generate JWT token

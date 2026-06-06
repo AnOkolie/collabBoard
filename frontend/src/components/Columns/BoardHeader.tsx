@@ -1,4 +1,13 @@
-import { Button, Group, Paper, Text, Title } from "@mantine/core";
+import {
+  Avatar,
+  AvatarGroup,
+  Button,
+  Group,
+  Paper,
+  Text,
+  Title,
+  Tooltip,
+} from "@mantine/core";
 import {
   IconGitFork,
   IconHome,
@@ -11,7 +20,11 @@ import {
   EXPORT_DATA_BUTTON_TEXT,
   PROJECT_HEADER_TEXT,
 } from "../../constants/string";
-
+import { useAuthStore } from "../../zustand/authStore/useAuthStore";
+import { useBoardSocket } from "../../context/BoardSocketContext";
+import { useEffect } from "react";
+import { OnlineUsers } from "../../types/user";
+import { useState } from "react";
 type BoardHeaderProps = {
   onOpenMembers: () => void;
   onOpenCreateColumn: () => void;
@@ -21,6 +34,43 @@ export const BoardHeader = ({
   onOpenMembers,
   onOpenCreateColumn,
 }: BoardHeaderProps) => {
+  const [onlineUsers, setOnlineUsers] = useState<OnlineUsers[]>([]);
+  const { lastJsonMessage } = useBoardSocket();
+  useEffect(() => {
+    if (!lastJsonMessage) return;
+    const { type } = lastJsonMessage;
+    console.log("last jaon: ", lastJsonMessage);
+    switch (type) {
+      case "user:joined": {
+        const { payload } = lastJsonMessage;
+
+        setOnlineUsers((prev) => {
+          const exists = prev.some((u) => u.id === payload.id);
+          return exists ? prev : [...prev, payload];
+        });
+
+        break;
+      }
+
+      case "user:left": {
+        const { payload } = lastJsonMessage;
+        setOnlineUsers((prev) => prev.filter((u) => u.id !== payload.id));
+
+        break;
+      }
+
+      case "user-joined:init": {
+        const { payload } = lastJsonMessage;
+
+        setOnlineUsers(payload);
+
+        break;
+      }
+    }
+  }, [lastJsonMessage]);
+  const logFunc = () => {
+    console.log(onlineUsers);
+  };
   return (
     <Paper
       withBorder
@@ -48,7 +98,6 @@ export const BoardHeader = ({
             Organize tasks, move work across columns, and keep progress visible.
           </Text>
         </div>
-
         <Group gap="sm">
           <Button variant="default" leftSection={<IconSettings size={16} />}>
             Settings
@@ -69,6 +118,15 @@ export const BoardHeader = ({
           <Button onClick={onOpenCreateColumn}>
             {CREATE_COLUMN_BUTTON_TEXT}
           </Button>
+          <Tooltip.Group openDelay={300} closeDelay={100}>
+            <Avatar.Group spacing="md">
+              {onlineUsers.map((user) => (
+                <Tooltip key={user.id} label={user.username} withArrow>
+                  <Avatar src={user.profilepic} radius="xl" />
+                </Tooltip>
+              ))}
+            </Avatar.Group>
+          </Tooltip.Group>
         </Group>
       </Group>
     </Paper>

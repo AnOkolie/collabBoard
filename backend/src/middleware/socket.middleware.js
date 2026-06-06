@@ -1,7 +1,7 @@
 import jwt from "jsonwebtoken";
 import cookie from "cookie";
 import { ENV } from "../utils/ENV.js";
-import { pool } from "../utils/db.js";
+import { pool } from "../db/db.js";
 
 export const socketAuthMiddleware = async (req) => {
   const rawCookie = req.headers.cookie;
@@ -24,7 +24,7 @@ export const socketAuthMiddleware = async (req) => {
   }
 
   const result = await pool.query(
-    "SELECT id, email, username FROM users WHERE id = $1",
+    "SELECT id, email, username, profilepic FROM users WHERE id = $1",
     [sub],
   );
 

@@ -1,10 +1,9 @@
-import { pool } from "../utils/db.js";
-import { broadcastBoard } from "../utils/socket.js";
+import { pool } from "../db/db.js";
+import { broadcastBoard } from "../websockets/boards.js";
 
 export const addColumn = async (req, res) => {
   const { id: boardId } = req.params;
   const { title, userId } = req.body;
-  console.log("add column id is:", userId);
 
   if (!boardId || !title || !userId) {
     return res.status(400).json({ error: "Required fields are missing" });
@@ -21,7 +20,7 @@ export const addColumn = async (req, res) => {
       "SELECT role FROM board_members WHERE board_id = $1 and user_id = $2",
       [boardId, userId],
     );
-    console.log("useRole: ", userRole);
+
     if (!userRole.rows[0].role) {
       return res
         .status(404)
@@ -111,7 +110,6 @@ export const renameColumn = async (req, res) => {
       column: response.rows[0],
     });
   } catch (error) {
-    console.log("Error updating the columns name: ", error);
     return res.status(500).json({ error: "Internal server error" });
   }
 };

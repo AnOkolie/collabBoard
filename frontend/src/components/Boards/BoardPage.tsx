@@ -52,12 +52,10 @@ export const BoardPage = () => {
     return Math.round((completed / total) * 100);
   }, [stats]);
 
-  const noBoards = rows.length === 0;
-  console.log("boards:", rows);
-
-  type boardShape = {
-    data: BoardType;
-  };
+  let noBoards = false;
+  if (rows === undefined || rows.length === 0) {
+    noBoards = true;
+  }
 
   const handleCreateBoardSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     if (!boardTitle.trim()) {
@@ -111,7 +109,6 @@ export const BoardPage = () => {
     if (!lastJsonMessage) return;
     const { type } = lastJsonMessage;
     if (type === "board:deleted") {
-      console.log("board:deleted", lastJsonMessage);
       const deletedBoard = lastJsonMessage.payload as BoardType;
 
       setRows((prevRows) =>
@@ -127,9 +124,7 @@ export const BoardPage = () => {
       setRows([...rows, updatedBoard]);
     }
     if (type === "board:joined") {
-      console.log("board page board:joined: ", lastJsonMessage.payload);
       const newBoard = lastJsonMessage.payload as BoardType;
-      console.log(newBoard);
       setRows([...rows, newBoard]);
     }
   }, [lastJsonMessage]);

@@ -1,5 +1,5 @@
-import { pool } from "../utils/db.js";
-import { broadcastBoard } from "../utils/socket.js";
+import { pool } from "../db/db.js";
+import { broadcastBoard } from "../websockets/boards.js";
 
 export const addCards = async (req, res) => {
   const { content: content, title: title, board_id: boardId } = req.body;

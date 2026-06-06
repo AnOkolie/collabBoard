@@ -7,8 +7,6 @@ export const searchLoader = async ({ request }: ActionFunctionArgs) => {
   if (!username) {
     return;
   }
-  console.log(username);
   const result = await searchUser(username);
-  console.log(result);
   return result.data;
 };

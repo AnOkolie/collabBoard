@@ -22,3 +22,10 @@ export type SearchResponse = {
   data?: findUserBody[];
   error?: { error: string };
 };
+
+export type OnlineUsers = {
+  activity: string;
+  id: string;
+  profilepic: string;
+  username: string;
+};

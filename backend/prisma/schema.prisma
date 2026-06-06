@@ -1,0 +1,97 @@
+generator client {
+  provider        = "prisma-client"
+  output          = "../src/generated/prisma"
+  previewFeatures = ["partialIndexes"]
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model board_invitations {
+  id                                             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  board_id                                       String    @db.Uuid
+  invited_user_id                                String    @db.Uuid
+  host_id                                        String    @db.Uuid
+  status                                         String    @default("pending")
+  created_at                                     DateTime  @default(now()) @db.Timestamp(6)
+  responded_at                                   DateTime? @db.Timestamp(6)
+  boards                                         boards    @relation(fields: [board_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_board")
+  users_board_invitations_host_idTousers         users     @relation("board_invitations_host_idTousers", fields: [host_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_host_id")
+  users_board_invitations_invited_user_idTousers users     @relation("board_invitations_invited_user_idTousers", fields: [invited_user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_invited_user_id")
+
+  @@unique([board_id, invited_user_id], map: "unique_pending_invite", where: raw("(status = 'pending'::text)"))
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model board_members {
+  board_id   String   @db.Uuid
+  user_id    String   @db.Uuid
+  role       String   @default("member")
+  created_at DateTime @default(now()) @db.Timestamp(6)
+  boards     boards   @relation(fields: [board_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_board_members_board")
+  users      users    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_board_members_user")
+
+  @@id([board_id, user_id])
+}
+
+model boards {
+  id                           String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title                        String
+  created_at                   DateTime?           @default(now()) @db.Timestamp(6)
+  user_id                      String              @db.Uuid
+  progress                     Int?                @default(0)
+  owner_id                     String              @db.Uuid
+  updated_at                   DateTime?           @default(now()) @db.Timestamp(6)
+  board_invitations            board_invitations[]
+  board_members                board_members[]
+  users_boards_owner_idTousers users               @relation("boards_owner_idTousers", fields: [owner_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_boards_owner")
+  users_boards_user_idTousers  users               @relation("boards_user_idTousers", fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_boards_user")
+  columns                      columns[]
+}
+
+model cards {
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  column_id  String?   @db.Uuid
+  content    String
+  updated_at DateTime? @default(now()) @db.Timestamp(6)
+  state      String?   @db.VarChar(50)
+  title      String?   @db.VarChar(25)
+  columns    columns?  @relation(fields: [column_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model columns {
+  id       String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  board_id String? @db.Uuid
+  title    String
+  cards    cards[]
+  boards   boards? @relation(fields: [board_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model user_friends {
+  user_id                             String    @db.Uuid
+  friend_id                           String    @db.Uuid
+  status                              String    @default("pending")
+  created_at                          DateTime? @default(now()) @db.Timestamp(6)
+  users_user_friends_friend_idTousers users     @relation("user_friends_friend_idTousers", fields: [friend_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_friend")
+  users_user_friends_user_idTousers   users     @relation("user_friends_user_idTousers", fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_user")
+
+  @@id([user_id, friend_id])
+}
+
+model users {
+  id                                                         String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email                                                      String
+  username                                                   String
+  password                                                   String
+  profilepic                                                 String?
+  board_invitations_board_invitations_host_idTousers         board_invitations[] @relation("board_invitations_host_idTousers")
+  board_invitations_board_invitations_invited_user_idTousers board_invitations[] @relation("board_invitations_invited_user_idTousers")
+  board_members                                              board_members[]
+  boards_boards_owner_idTousers                              boards[]            @relation("boards_owner_idTousers")
+  boards_boards_user_idTousers                               boards[]            @relation("boards_user_idTousers")
+  user_friends_user_friends_friend_idTousers                 user_friends[]      @relation("user_friends_friend_idTousers")
+  user_friends_user_friends_user_idTousers                   user_friends[]      @relation("user_friends_user_idTousers")
+}

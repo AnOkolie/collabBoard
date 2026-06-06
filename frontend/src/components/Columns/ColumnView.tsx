@@ -105,10 +105,8 @@ export const ColumnView = () => {
 
     switch (type) {
       case "column:created": {
-        console.log("created console");
         const { payload } = lastJsonMessage;
         const newColumn = payload;
-        console.log("new column: ", newColumn);
         setBoardColumns([...boardColumns, newColumn]);
         break;
       }
@@ -144,7 +142,6 @@ export const ColumnView = () => {
       }
 
       case "card:moved": {
-        console.log("card:moved", lastJsonMessage);
         const { payload } = lastJsonMessage;
         const { cardId, fromColumnId, toColumnId } = payload;
 

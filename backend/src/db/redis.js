@@ -1,6 +1,9 @@
 import { createClient } from "redis";
+import { ENV } from "../utils/env";
 
-const client = createClient();
+const client = createClient({
+  url: ENV.REDIS_URL,
+});
 await client.connect();
 
 export async function publishMessage(channel, message) {

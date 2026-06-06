@@ -19,7 +19,7 @@ import { initSubscriber } from "./redis/subscriber.js";
 const app = express();
 const server = http.createServer(app);
 const __dirname = path.resolve();
-const port = process.env.PORT || 3000;
+const port = ENV.PORT || 3000;
 
 webSocketSetup();
 
@@ -39,7 +39,7 @@ server.on("upgrade", async (req, socket, head) => {
 });
 
 app.use(express.json({ limit: "5mb" }));
-app.use(cors({ origin: process.env.CLIENT_URL, credentials: true }));
+app.use(cors({ origin: ENV.CLIENT_URL, credentials: true }));
 app.use(cookieParser());
 
 app.use(

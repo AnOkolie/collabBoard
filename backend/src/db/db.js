@@ -14,10 +14,7 @@ const { Pool } = pkg;
 // });
 
 export const pool = new Pool({
-  host: "localhost",
-  port: 5432,
-  user: "anthonyokolie",
-  database: "collab_board",
+  connectionString: ENV.POSTGRES_URL,
 });
 export const test = async () => {
   console.log("connecting DB...");

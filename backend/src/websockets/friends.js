@@ -1,5 +1,4 @@
 export const friendRequest = async (user_id, friend_id, ws) => {
-  console.log(`user_id: ${user_id} & friend_id: ${friend_id}`);
   if (!friend_id || !user_id) {
     ws.send(
       JSON.stringify({
@@ -17,7 +16,6 @@ export const friendRequest = async (user_id, friend_id, ws) => {
       }),
     );
   }
-  console.log(result);
   const friendSocket = userSocketMap.get(friend_id);
   if (friendSocket) {
     friendSocket.send(

@@ -57,6 +57,7 @@ export const handleBoardInvitation = async (user_id, friend_id, board_id) => {
 
 export const updateBoardInvite = async (board_id, user_id, host_id, state) => {
   const ws = userSocketMap.get(user_id);
+  const boardRooms = getBoardRoom(board_id);
 
   if (!ws) return;
   if (!board_id || !user_id || !host_id) {
@@ -87,7 +88,6 @@ export const updateBoardInvite = async (board_id, user_id, host_id, state) => {
       boardRooms.set(board_id, new Set());
     }
     boardRooms.get(board_id).add(ws);
-    console.log(response);
     return ws.send(
       JSON.stringify({
         type: "board:joined",
@@ -99,21 +99,23 @@ export const updateBoardInvite = async (board_id, user_id, host_id, state) => {
 };
 
 export const broadcastBoard = (board_id, payload) => {
-  const subscribers = boardRooms.get(board_id);
+  const subscribers = getBoardRoom(board_id);
 
   if (!subscribers) return;
 
   const message = JSON.stringify(payload);
 
-  subscribers.forEach((ws) => {
-    if (ws.readyState === ws.OPEN) {
-      try {
-        ws.send(message);
-      } catch (err) {
-        console.error("Socket send failed:", err);
+  for (const [id, set] of subscribers) {
+    for (const ws of set) {
+      if (ws.readyState === ws.OPEN) {
+        try {
+          ws.send(message);
+        } catch (err) {
+          console.error("Socket send failed:", err);
+        }
       }
     }
-  });
+  }
 };
 
 export const joinBoard = async (payload, ws) => {
@@ -159,7 +161,6 @@ export const leaveBoard = async (payload, ws) => {
 };
 
 export const closeSocket = async (ws) => {
-  console.log("Ws.boards", ws.boards);
   for (const board_id of ws.boards) {
     console.log("closing sockets...");
     try {

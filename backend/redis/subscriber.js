@@ -20,7 +20,6 @@ export const initSubscriber = async () => {
 
     const data = JSON.parse(message);
     for (const [id, set] of room) {
-      console.log("id", id);
       for (const ws of set) {
         if (ws.readyState === ws.OPEN) {
           try {

@@ -22,7 +22,6 @@ import {
 } from "./boards.js";
 
 const userSocketMap = new Map();
-const boardRooms = new Map();
 
 export const wss = new WebSocketServer({ noServer: true });
 
@@ -38,9 +37,7 @@ export const webSocketSetup = () => {
     ws.on("message", async (message) => {
       console.log("received:", message.toString());
       const data = JSON.parse(message);
-      console.log(data);
       const { type } = data;
-      console.log(type);
       if (type === "friend-request") {
         const { user_id, friend_id } = data;
         friendRequest(user_id, friend_id, ws);

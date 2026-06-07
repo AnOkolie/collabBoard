@@ -102,7 +102,6 @@ export const updateProfile = async (req, res) => {
 };
 
 export const findUserByName = async (req, res) => {
-  console.log(req.query);
   const { username } = req.query;
   if (!username) {
     return res.status(400).json({ error: "Provide a username" });
@@ -129,7 +128,6 @@ export const findUserByName = async (req, res) => {
 };
 
 export const getProfilePicture = async (user_id) => {
-  console.log("find profile for user: ", user_id);
   if (!user_id) return { error: "Missing user Id!" };
 
   try {
@@ -137,7 +135,6 @@ export const getProfilePicture = async (user_id) => {
       "SELECT profilepic FROM users where id = $1",
       [user_id],
     );
-    console.log("find profile response: ", profile);
     if (profile.row.length === 0) {
       return { error: "Invalid user Id" };
     }

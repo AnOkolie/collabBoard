@@ -9,7 +9,6 @@ export const publisherBoardUpdate = async (
   count,
 ) => {
   let bool = false;
-  console.log("type:", type, " count:", count);
   switch (type) {
     case "user:joined":
       bool = count == 1 ? true : false;
@@ -30,7 +29,6 @@ export const publisherBoardUpdate = async (
 
 export const publisherBoardInit = async ({ board_id, type, ws }) => {
   const list = await onlineUserList(board_id);
-  console.log(`list: ${list}`);
   const payload = list.length === 0 ? [] : list;
   const user_id = ws.user.id;
   publisher.publish(

@@ -9,4 +9,5 @@ export const ENV = {
   CLOUDINARY_API_SECRET: process.env.CLOUDINARY_API_SECRET,
   CLOUDINARY_CLOUD_NAME: process.env.CLOUDINARY_CLOUD_NAME,
   REDIS_URL: process.env.REDIS_URL,
+  POSTGRES_URL: process.env.POSTGRES_URL,
 };

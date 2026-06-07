@@ -21,9 +21,7 @@ export async function subscriber(channel) {
   try {
     await client.subscribe(channel, (message, channel) => {
       const channelMsg = JSON.parse(message);
-      console.log(`Response Object: ${channelMsg}`);
     });
-    console.log(`Subscribed to channel: ${channelName}`);
   } catch (err) {
     console.error(`Error subscribing to channel ${channel}: `, err);
   }

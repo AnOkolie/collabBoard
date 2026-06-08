@@ -39,7 +39,6 @@ export const BoardHeader = ({
   useEffect(() => {
     if (!lastJsonMessage) return;
     const { type } = lastJsonMessage;
-    console.log("last jaon: ", lastJsonMessage);
     switch (type) {
       case "user:joined": {
         const { payload } = lastJsonMessage;
@@ -68,9 +67,7 @@ export const BoardHeader = ({
       }
     }
   }, [lastJsonMessage]);
-  const logFunc = () => {
-    console.log(onlineUsers);
-  };
+
   return (
     <Paper
       withBorder

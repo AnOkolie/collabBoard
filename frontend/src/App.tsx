@@ -24,22 +24,26 @@ import { SearchUser } from "./components/SearchUser/SearchUser";
 import { searchLoader } from "./components/SearchUser/loader";
 import { searchAction } from "./components/SearchUser/action";
 import { activityCenterLoader } from "./components/ActivityCenter/loader";
+import { ErrorBoundary } from "./components/ErrorBoundary/ErrorBoundary";
 
 const router = createBrowserRouter([
   {
     path: "/login",
     element: <Login />,
     action: loginAction,
+    errorElement: <ErrorBoundary />,
   },
   {
     path: "/signup",
     element: <Signup />,
     action: signupAction,
+    errorElement: <ErrorBoundary />,
   },
   {
     path: "/",
     loader: authLoader,
     element: <ProtectedLayout />,
+    errorElement: <ErrorBoundary />,
     shouldRevalidate: () => false,
     children: [
       {

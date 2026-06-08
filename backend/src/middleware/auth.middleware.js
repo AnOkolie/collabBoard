@@ -4,7 +4,8 @@ import { pool } from "../db/db.js";
 
 export const protectRoute = async (req, res, next) => {
   try {
-    const token = req.cookies.jwt;
+    const authHeaders = req.headers.authorization;
+    const token = authHeaders.split(" ")[1];
     if (!token)
       return res
         .status(401)
@@ -27,8 +28,8 @@ export const protectRoute = async (req, res, next) => {
 };
 
 export const requireAuth = (req, res, next) => {
-  const token = req.cookies.token;
-
+  const authHeaders = req.headers.authorization;
+  const token = authHeaders.split(" ")[1];
   if (!token) {
     return res.status(401).json({ error: "Not authenticated" });
   }

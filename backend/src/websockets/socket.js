@@ -35,7 +35,6 @@ export const webSocketSetup = () => {
     ws.boards = new Set();
 
     ws.on("message", async (message) => {
-      console.log("received:", message.toString());
       const data = JSON.parse(message);
       const { type } = data;
       if (type === "friend-request") {
@@ -45,7 +44,6 @@ export const webSocketSetup = () => {
         const { user_id, friend_id, board_id } = data;
         handleBoardInvitation(user_id, friend_id, board_id, ws);
       } else if (type == "board-invitation-response") {
-        console.log("invite response");
         const { user_id, host_id, board_id, response } = data;
         updateBoardInvite(board_id, user_id, host_id, response);
       } else if (type == "board:join") {

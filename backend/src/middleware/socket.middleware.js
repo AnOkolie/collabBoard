@@ -4,14 +4,8 @@ import { ENV } from "../utils/env.js";
 import { pool } from "../db/db.js";
 
 export const socketAuthMiddleware = async (req) => {
-  const rawCookie = req.headers.cookie;
-
-  if (!rawCookie) {
-    throw new Error("Unauthorized - No Cookie Header");
-  }
-
-  const cookies = cookie.parse(rawCookie);
-  const token = cookies.token;
+  const url = new URL(req.url, "http://localhost:3000");
+  const token = url.searchParams.get("token");
 
   if (!token) {
     throw new Error("Unauthorized - No Token Provided");

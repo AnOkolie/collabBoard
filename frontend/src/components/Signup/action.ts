@@ -35,6 +35,9 @@ export const signupAction = async ({ request }: ActionFunctionArgs) => {
       createdAt: userData.createdAt,
       profilepic: userData.profilepic,
     });
+    if (token) {
+      localStorage.setItem("token", token);
+    }
     return response;
   }
 };

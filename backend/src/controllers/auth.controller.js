@@ -29,16 +29,17 @@ export const login = async (req, res) => {
       ENV.JWT_SECRET,
       { expiresIn: "2h" },
     );
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-      maxAge: 2 * 60 * 60 * 1000,
-    });
+    // res.cookie("token", token, {
+    //   httpOnly: true,
+    //   secure: process.env.NODE_ENV === "production",
+    //   sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+    //   maxAge: 2 * 60 * 60 * 1000,
+    // });
     const { password, ...userWithoutPassword } = user;
     res.status(200).json({
       message: "Login successful",
       user: userWithoutPassword,
+      token,
     });
   } catch (error) {
     console.error("Error during login:", error);
@@ -76,16 +77,12 @@ export const register = async (req, res) => {
       { expiresIn: "2h" },
     );
     //for cross site cookies, sameSite needs to be turned off
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-      maxAge: 2 * 60 * 60 * 1000,
-    });
+
     const { password, ...userWithoutPassword } = user;
     res.status(201).json({
       message: "User registered successfully",
       user: userWithoutPassword,
+      token,
     });
   } catch (error) {
     console.error("Error during registration:", error);
@@ -95,7 +92,9 @@ export const register = async (req, res) => {
 
 export const checkAuth = async (req, res) => {
   try {
-    const token = req.cookies.token;
+    const authHeaders = req.headers.authorization;
+    const token = authHeaders.split(" ")[1];
+
     if (!token) {
       return res.status(401).json({ error: { message: "Not authenticated" } });
     }
@@ -113,7 +112,8 @@ export const checkAuth = async (req, res) => {
     }
 
     return res.status(200).json({ message: "User is authenticated", user });
-  } catch {
+  } catch (err) {
+    console.log(err);
     return res.status(401).json({ error: "Invalid or expired token" });
   }
 };

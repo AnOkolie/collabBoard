@@ -123,7 +123,8 @@ export function Navbar() {
               <NavLink
                 label={opened ? "Logout" : ""}
                 leftSection={<IconLogout size={30} />}
-                href="logout"
+                onClick={() => localStorage.removeItem("token")}
+                href="/login"
               />
             </Form>
             <SocketStatusBadge />

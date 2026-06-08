@@ -9,6 +9,13 @@ export const request = async <Type>(
 ): Promise<RequestResolve<Type>> => {
   try {
     const requestHeaders = new Headers();
+    try {
+      const token = localStorage.getItem("token");
+      if (token) {
+        requestHeaders.append("Authorization", `Bearer ${token}`);
+      }
+    } catch (err) {}
+
     for (const [key, value] of Object.entries(headers ?? {})) {
       requestHeaders.append(key, value);
     }
@@ -17,7 +24,6 @@ export const request = async <Type>(
       method,
       headers: requestHeaders,
       body,
-      credentials: "include",
     });
     if (res.ok) {
       return { data: await res.json() };

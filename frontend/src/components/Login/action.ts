@@ -29,6 +29,10 @@ export const loginAction = async ({ request }: ActionFunctionArgs) => {
       createdAt: userData.createdAt,
       profilepic: userData.profilepic,
     });
+    if (response.data.token) {
+      const token = response.data.token;
+      localStorage.setItem("token", token);
+    }
     return response;
   }
 };

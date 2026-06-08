@@ -20,8 +20,10 @@ import {
 const BoardSocketContext = createContext<BoardSocketContextValue | null>(null);
 
 export const BoardSocketProvider = ({ children }: { children: ReactNode }) => {
+  const token = localStorage.getItem("token");
+  const socketUrl = `${import.meta.env.VITE_WS_URL}?token=${token}`;
   const { sendJsonMessage, lastJsonMessage, readyState } = useWebSocket(
-    "ws://localhost:3000",
+    socketUrl,
     {
       share: true,
       shouldReconnect: () => true,

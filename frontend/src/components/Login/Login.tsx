@@ -5,11 +5,12 @@ import {
   TextInput,
   Loader,
   Container,
-  Paper,
+  Flex,
   Center,
   Card,
   Title,
   Stack,
+  Anchor,
 } from "@mantine/core";
 import { use, useEffect, useState } from "react";
 import { Form, useActionData } from "react-router-dom";
@@ -83,6 +84,11 @@ export const Login = () => {
                   </Button>
                 </Stack>
               </Form>
+              <Flex justify={"center"}>
+                <Text>
+                  Don't have an account <Anchor href="/signup"> Sign In</Anchor>
+                </Text>
+              </Flex>
             </Stack>
           </Card>
         </Stack>

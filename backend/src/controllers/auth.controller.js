@@ -2,6 +2,7 @@ import { pool } from "../db/db.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { ENV } from "../utils/env.js";
+import { prisma } from "../db/prisma.js";
 
 export const login = async (req, res) => {
   const { email, password: userPassword } = req.body;

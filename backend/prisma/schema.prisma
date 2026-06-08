@@ -83,7 +83,7 @@ model user_friends {
 
 model users {
   id                                                         String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  email                                                      String
+  email                                                      String              @unique(map: "unique_email")
   username                                                   String
   password                                                   String
   profilepic                                                 String?

@@ -1,5 +1,5 @@
-import "dotenv/config";
-
+import { config } from "dotenv";
+config();
 export const ENV = {
   PORT: process.env.PORT,
   CLIENT_URL: process.env.CLIENT_URL,
@@ -10,4 +10,5 @@ export const ENV = {
   CLOUDINARY_CLOUD_NAME: process.env.CLOUDINARY_CLOUD_NAME,
   REDIS_URL: process.env.REDIS_URL,
   POSTGRES_URL: process.env.POSTGRES_URL,
+  DATABASE_URL: process.env.DATABASE_URL,
 };

@@ -32,7 +32,6 @@ export const BoardPage = () => {
   const navigate = useNavigate();
   const loaderData = useLoaderData() as LoaderData;
 
-  //const rows = loaderData?.boards?.board ?? [];
   const stats = loaderData?.stats?.data ?? {};
 
   const [boardTitle, setBoardTitle] = useState("");

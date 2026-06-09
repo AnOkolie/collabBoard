@@ -35,23 +35,27 @@ export const webSocketSetup = () => {
     ws.boards = new Set();
 
     ws.on("message", async (message) => {
-      const data = JSON.parse(message);
-      const { type } = data;
-      if (type === "friend-request") {
-        const { user_id, friend_id } = data;
-        friendRequest(user_id, friend_id, ws);
-      } else if (type === "board-invite") {
-        const { user_id, friend_id, board_id } = data;
-        handleBoardInvitation(user_id, friend_id, board_id, ws);
-      } else if (type == "board-invitation-response") {
-        const { user_id, host_id, board_id, response } = data;
-        updateBoardInvite(board_id, user_id, host_id, response);
-      } else if (type == "board:join") {
-        const { payload } = data;
-        joinBoard(payload, ws);
-      } else if (type == "board:leave") {
-        const { payload } = data;
-        leaveBoard(payload, ws);
+      try {
+        const data = JSON.parse(message);
+        const { type } = data;
+        if (type === "friend-request") {
+          const { user_id, friend_id } = data;
+          friendRequest(user_id, friend_id, ws);
+        } else if (type === "board-invite") {
+          const { user_id, friend_id, board_id } = data;
+          handleBoardInvitation(user_id, friend_id, board_id, ws);
+        } else if (type == "board-invitation-response") {
+          const { user_id, host_id, board_id, response } = data;
+          updateBoardInvite(board_id, user_id, host_id, response);
+        } else if (type == "board:join") {
+          const { payload } = data;
+          joinBoard(payload, ws);
+        } else if (type == "board:leave") {
+          const { payload } = data;
+          leaveBoard(payload, ws);
+        }
+      } catch (err) {
+        console.log("Message err: ", err);
       }
     });
 

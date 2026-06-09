@@ -11,6 +11,11 @@ import {
   publishPresenceUpdate,
 } from "../services/publisherHandler.js";
 
+import {
+  boardInvitation,
+  updateBoardInviteState,
+} from "../controllers/board.controller.js";
+
 export const handleBoardInvitation = async (user_id, friend_id, board_id) => {
   const ws = userSocketMap.get(user_id);
   const friendSock = userSocketMap.get(friend_id);

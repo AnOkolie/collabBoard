@@ -1,3 +1,5 @@
+import { pendingFriend } from "../controllers/friends.controller";
+
 export const friendRequest = async (user_id, friend_id, ws) => {
   if (!friend_id || !user_id) {
     ws.send(

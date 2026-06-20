@@ -1,10 +1,11 @@
 import { ActionFunctionArgs } from "react-router-dom";
 import { useAuthStore } from "../../zustand/authStore/useAuthStore";
 import { sendFriendRequest } from "../../api/user";
-import { useBoardSocket } from "../../context/BoardSocketContext";
+import { useSocket } from "../../context/SocketContext";
+import { useFriendSocket } from "../../hooks/useFriendSocket";
 
 export const searchAction = async ({ request }: ActionFunctionArgs) => {
-  const { sendJsonMessage, lastJsonMessage, isConnected } = useBoardSocket();
+  const { sendFriendRequest: websocketFriendRequest } = useFriendSocket();
   const formdata = await request.formData();
   const friendId = formdata.get("friend-user-id")?.toString();
   const currUser = useAuthStore.getState().authUser;
@@ -16,14 +17,8 @@ export const searchAction = async ({ request }: ActionFunctionArgs) => {
     return { error: "Unable to add friend" };
   }
 
-  if (!isConnected) return;
+  websocketFriendRequest(friendId);
 
-  sendJsonMessage({
-    type: "friend-request",
-    user_id: currUserId,
-    friend_id: friendId,
-    message: "Lets be friends please",
-  });
   const result = await sendFriendRequest(currUserId, friendId);
   return result.data;
 };

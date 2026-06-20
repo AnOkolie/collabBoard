@@ -14,3 +14,7 @@ export type checkAuthResponse = {
 export type logoutResponse = {
   message: string;
 };
+
+export type refreshResponse = {
+  accessToken: string;
+};

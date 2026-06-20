@@ -32,7 +32,6 @@ export const signupAction = async ({ request }: ActionFunctionArgs) => {
       id: userData.id,
       email: userData.email,
       username: userData.username,
-      createdAt: userData.createdAt,
       profilepic: userData.profilepic,
     });
     if (token) {

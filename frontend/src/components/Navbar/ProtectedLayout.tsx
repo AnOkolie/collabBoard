@@ -1,7 +1,7 @@
 import { Navigate, Outlet, useLoaderData } from "react-router-dom";
 import { useAuthStore } from "../../zustand/authStore/useAuthStore";
 import { Navbar } from "./Navbar";
-import { BoardSocketProvider } from "../../context/BoardSocketContext";
+import { SocketProvider } from "../../context/SocketContext";
 
 export const ProtectedLayout = () => {
   const loaderUser = useLoaderData();
@@ -15,9 +15,9 @@ export const ProtectedLayout = () => {
 
   return (
     <>
-      <BoardSocketProvider>
+      <SocketProvider>
         <Navbar />
-      </BoardSocketProvider>
+      </SocketProvider>
     </>
   );
 };

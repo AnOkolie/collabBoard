@@ -25,6 +25,13 @@ import { searchLoader } from "./components/SearchUser/loader";
 import { searchAction } from "./components/SearchUser/action";
 import { activityCenterLoader } from "./components/ActivityCenter/loader";
 import { ErrorBoundary } from "./components/ErrorBoundary/ErrorBoundary";
+import { SocketProvider } from "./context/SocketContext";
+import { Message } from "./components/Messages/Message";
+import { messagesLoader } from "./components/Messages/messagesLoader";
+import { conversationLoader } from "./components/Messages/conversationLoader";
+import { SocketListeners } from "./context/SocketListeners";
+import { ChannelList } from "./components/Messages/ChannelList";
+import { EmptyConversation } from "./components/Messages/EmptyConversation";
 
 const router = createBrowserRouter([
   {
@@ -78,6 +85,22 @@ const router = createBrowserRouter([
         loader: activityCenterLoader,
       },
       {
+        path: "messages",
+        element: <ChannelList />,
+        loader: conversationLoader,
+        children: [
+          {
+            index: true,
+            element: <EmptyConversation />,
+          },
+          {
+            path: ":userId/:conversationId",
+            element: <Message />,
+            loader: messagesLoader,
+          },
+        ],
+      },
+      {
         path: "logout",
         action: navbarAction,
       },
@@ -89,12 +112,14 @@ export const App = () => {
   const isCheckingAuth = useAuthStore((s) => s.isCheckingAuth);
 
   if (isCheckingAuth) return <PageLoader />;
-
   return (
     <MantineProvider>
       <Notifications />
       <ModalsProvider>
-        <RouterProvider router={router} />
+        <SocketProvider>
+          <SocketListeners />
+          <RouterProvider router={router} />
+        </SocketProvider>
       </ModalsProvider>
     </MantineProvider>
   );

@@ -23,8 +23,12 @@ export const deleteUser = async (userId: string) =>
 
 export const searchUser = async (
   username: string,
+  userId: string,
 ): Promise<RequestResolve<findUserResponse>> =>
-  await request(RequestMethods.GET, `user/search?username=${username}`);
+  await request(
+    RequestMethods.GET,
+    `user/${userId}/search?username=${username}`,
+  );
 
 export const sendFriendRequest = async (user_id: string, friend_id: string) =>
   await request(

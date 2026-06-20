@@ -7,6 +7,8 @@ import {
   register,
   logout,
   checkAuth,
+  validUsername,
+  refreshToken,
 } from "../controllers/auth.controller.js";
 
 router.post("/login", login);
@@ -16,5 +18,7 @@ router.get("/check", protectRoute, (req, res) =>
 );
 router.get("/check-auth", checkAuth);
 router.post("/logout", logout);
+router.get("/username-check", validUsername);
+router.post("/refresh", refreshToken);
 
 export default router;

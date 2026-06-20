@@ -8,40 +8,21 @@ import {
   Center,
   Flex,
   Input,
-  Button,
 } from "@mantine/core";
-import { useEffect, useState } from "react";
-import { IconUserPlus } from "@tabler/icons-react";
-import { findUserBody, SearchResponse, userObject } from "../../types/user";
-import { useBoardSocket } from "../../context/BoardSocketContext";
+
 import { useAuthStore } from "../../zustand/authStore/useAuthStore";
 import { SearchUserComponent } from "../../hooks/useSearchUser";
 import { useSearchUser } from "../../hooks/useSearchUser";
+import { UserSearchButton } from "./UserSearchButton";
+import { useFriendSocket } from "../../hooks/useFriendSocket";
+import { useSocket } from "../../context/SocketContext";
 
 export const SearchUser = () => {
   const { searchName, setSearchName, usersByName, isLoading } =
     useSearchUser(800);
-  const [friendId, setFriendId] = useState("");
-  const { sendJsonMessage, isConnected } = useBoardSocket();
-  // const [filteredNames, setFilteredNames] = useState<findUserBody[]>([]);
-  const whisperToSocket = (targetFriendId: string) => {
-    const currUser = useAuthStore.getState().authUser;
-    if (!currUser) return;
-
-    if (!currUser.id || !targetFriendId || !isConnected) return;
-
-    sendJsonMessage({
-      type: "friend-request",
-      user_id: currUser.id,
-      friend_id: targetFriendId,
-      message: "Lets be friends please",
-    });
-  };
-
   const currentUserId = useAuthStore.getState().authUser?.id;
-
   const filteredNames = usersByName.filter((user) => user.id !== currentUserId);
-
+  const { sendFriendRequest } = useFriendSocket();
   return (
     <Container>
       <SearchUserComponent
@@ -71,16 +52,10 @@ export const SearchUser = () => {
               </div>
 
               <Flex ml="auto" gap="md">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => {
-                    setFriendId(user.id);
-                    whisperToSocket(user.id);
-                  }}
-                >
-                  <IconUserPlus color="green" />
-                </Button>
+                <UserSearchButton
+                  user={user}
+                  onSendRequest={() => sendFriendRequest(user.id)}
+                />
               </Flex>
             </Group>
           </Paper>

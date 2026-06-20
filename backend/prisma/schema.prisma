@@ -55,6 +55,7 @@ model cards {
   id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   column_id  String?   @db.Uuid
   content    String
+  created_at DateTime @default(now()) @db.Timestamp(6)
   updated_at DateTime? @default(now()) @db.Timestamp(6)
   state      String?   @db.VarChar(50)
   title      String?   @db.VarChar(25)
@@ -69,29 +70,164 @@ model columns {
   boards   boards? @relation(fields: [board_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 }
 
-/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
-model user_friends {
-  user_id                             String    @db.Uuid
-  friend_id                           String    @db.Uuid
-  status                              String    @default("pending")
-  created_at                          DateTime? @default(now()) @db.Timestamp(6)
-  users_user_friends_friend_idTousers users     @relation("user_friends_friend_idTousers", fields: [friend_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_friend")
-  users_user_friends_user_idTousers   users     @relation("user_friends_user_idTousers", fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_user")
-
-  @@id([user_id, friend_id])
-}
-
 model users {
-  id                                                         String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  email                                                      String              @unique(map: "unique_email")
-  username                                                   String
+  id                                                         String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email                                                      String                 @unique(map: "unique_email")
+  username                                                   String                 @unique(map: "unique_username")
   password                                                   String
   profilepic                                                 String?
-  board_invitations_board_invitations_host_idTousers         board_invitations[] @relation("board_invitations_host_idTousers")
-  board_invitations_board_invitations_invited_user_idTousers board_invitations[] @relation("board_invitations_invited_user_idTousers")
+  created_at DateTime @default(now()) @db.Timestamp(6)
+  board_invitations_board_invitations_host_idTousers         board_invitations[]    @relation("board_invitations_host_idTousers")
+  board_invitations_board_invitations_invited_user_idTousers board_invitations[]    @relation("board_invitations_invited_user_idTousers")
   board_members                                              board_members[]
-  boards_boards_owner_idTousers                              boards[]            @relation("boards_owner_idTousers")
-  boards_boards_user_idTousers                               boards[]            @relation("boards_user_idTousers")
-  user_friends_user_friends_friend_idTousers                 user_friends[]      @relation("user_friends_friend_idTousers")
-  user_friends_user_friends_user_idTousers                   user_friends[]      @relation("user_friends_user_idTousers")
+  boards_boards_owner_idTousers                              boards[]               @relation("boards_owner_idTousers")
+  boards_boards_user_idTousers                               boards[]               @relation("boards_user_idTousers")
+  conversation_members                                       conversation_members[]
+  conversation_reads                                         conversation_reads[]
+  conversations                                              conversations[]
+  message_reactions                                          message_reactions[]
+  messages                                                   messages[]
+  friendshipRequestsSent     friendship_requests[] @relation("friendship_requester")
+  friendshipRequestsReceived friendship_requests[] @relation("friendship_recipient")
+  friendsInitiated friends[] @relation("friend_user")
+  friendsReceived  friends[] @relation("friend_friend")
+}
+
+model attachments {
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  message_id String    @db.Uuid
+  file_name  String
+  file_url   String
+  mime_type  String
+  file_size  BigInt
+  created_at DateTime? @default(now()) @db.Timestamptz(6)
+  deleted_at DateTime?
+  messages   messages  @relation(fields: [message_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_message_id")
+}
+
+model conversation_members {
+  conversation_id String            @db.Uuid
+  user_id         String            @db.Uuid
+  joined_at       DateTime?         @db.Timestamptz(6)
+  role            conversation_role
+  conversations   conversations     @relation(fields: [conversation_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_conversation_id")
+  users           users             @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_user_id")
+
+  @@id([conversation_id, user_id], map: "pk_conversation_members")
+  @@index([user_id])
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model conversation_reads {
+  conversation_id      String        @db.Uuid
+  user_id              String        @db.Uuid
+  last_read_message_id String        @db.Uuid
+  updated_at           DateTime?     @db.Timestamptz(6)
+  conversations        conversations @relation(fields: [conversation_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_conversation_id")
+  messages             messages      @relation(fields: [last_read_message_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_last_read_message_id")
+  users                users         @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_user_id")
+
+  @@id([conversation_id, user_id])
+}
+
+model conversations {
+  id                      String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  type                    conversation_type
+  name                    String?
+  created_by              String                 @db.Uuid
+  created_at              DateTime?              @default(now()) @db.Timestamptz(6)
+  updated_at              DateTime?              @default(now()) @db.Timestamptz(6)
+  last_message_at         DateTime?              @db.Timestamptz(6)
+  direct_conversation_key String?                @unique
+  last_message_id         String?                @db.Uuid
+  display_picture         String?
+  conversation_members    conversation_members[]
+  conversation_reads      conversation_reads[]
+  users                   users                  @relation(fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_conversations")
+  messages                messages[]
+}
+
+model message_reactions {
+  message_id String    @db.Uuid
+  user_id    String    @db.Uuid
+  reaction   String    @db.VarChar(5)
+  created_at DateTime? @default(now()) @db.Timestamptz(6)
+  messages   messages  @relation(fields: [message_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_message_id")
+  users      users     @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_user_id")
+
+  @@id([message_id, user_id, reaction], map: "pk_message_reactions")
+}
+
+model messages {
+  id                 String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  conversation_id    String               @db.Uuid
+  sender_id          String               @db.Uuid
+  content            String?
+  message_type       message_types
+  created_at         DateTime?            @default(now()) @db.Timestamptz(6)
+  edited_at          DateTime?            @db.Timestamptz(6)
+  deleted_at         DateTime?            @db.Timestamptz(6)
+  metadata           Json?
+  attachments        attachments[]
+  conversation_reads conversation_reads[]
+  message_reactions  message_reactions[]
+  conversations      conversations        @relation(fields: [conversation_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_conversation_id")
+  users              users                @relation(fields: [sender_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_sender_id")
+
+  @@index([conversation_id, created_at])
+}
+
+model friends {
+  id String @id @default(uuid()) @db.Uuid
+
+  user_id   String @db.Uuid
+  friend_id String @db.Uuid
+  status String @default("friends")
+
+  created_at DateTime @default(now())
+
+  user   users @relation("friend_user", fields: [user_id], references: [id], onDelete: Cascade)
+  friend users @relation("friend_friend", fields: [friend_id], references: [id], onDelete: Cascade)
+
+  @@unique([user_id, friend_id])
+}
+
+model friendship_requests {
+  id String @id @default(uuid())
+
+  user_id String @db.Uuid
+  friend_id String @db.Uuid
+  status String @default("pending")
+
+  created_at DateTime @default(now())
+
+  requester users @relation("friendship_requester", fields: [user_id], references: [id])
+  recipient users @relation("friendship_recipient", fields: [friend_id], references: [id])
+
+  @@unique([user_id, friend_id])
+}
+
+enum conversation_role {
+  member
+  owner
+  admin
+}
+
+enum conversation_type {
+  direct
+  group
+}
+
+enum message_types {
+  Text
+  Image
+  File
+  System
+}
+
+enum friendship_status {
+  pending
+  accepted
+  blocked
+  declined
 }

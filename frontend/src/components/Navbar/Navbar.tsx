@@ -1,6 +1,7 @@
 import { useDisclosure } from "@mantine/hooks";
 import {
   AppShell,
+  Avatar,
   Burger,
   Flex,
   TextInput,
@@ -10,6 +11,7 @@ import {
   Badge,
   Drawer,
   Button,
+  Tooltip,
 } from "@mantine/core";
 import { Form, Outlet } from "react-router-dom";
 import {
@@ -26,10 +28,17 @@ import {
 import { SocketStatusBadge } from "./StatusBar";
 import { ActivityCenter } from "../ActivityCenter/ActivityCenter";
 import { useAuthStore } from "../../zustand/authStore/useAuthStore";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 export function Navbar() {
+  const authUser = useAuthStore((s) => s.authUser);
+  const navigate = useNavigate();
+  const { profilepic, username } = authUser || {};
   const [opened, { toggle }] = useDisclosure();
   const [notifDrawerOpened, notifDrawerHandler] = useDisclosure();
+  const [preview, setPreview] = useState<string | null>(profilepic || null);
+
   return (
     <>
       <AppShell
@@ -60,8 +69,14 @@ export function Navbar() {
                 notifDrawerOpened={notifDrawerOpened}
               />
               <IconCalendar />
-              <IconUser />
-              <Text>{useAuthStore.getState().authUser?.username}</Text>
+              <Avatar
+                component="button"
+                onClick={(e) => navigate("/profile")}
+                src={preview || "./avatar.png"}
+                radius={"xl"}
+              />
+
+              <Text m={"md"}>{username}</Text>
             </Flex>
           </Flex>
         </AppShell.Header>

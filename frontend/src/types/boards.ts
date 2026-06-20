@@ -45,4 +45,7 @@ export type BoardInvitesStructure = {
   board_id: string;
   id: string;
   alert: string;
+  boards: {
+    title: string;
+  };
 };

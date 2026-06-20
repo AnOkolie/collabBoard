@@ -8,7 +8,7 @@ import { ColumnType } from "../../types/columns";
 import { BoardMembers } from "../../types/boards";
 import { moveCard } from "../../api/card";
 import { displayNotifications } from "../../utilities/displayNotifications";
-import { useBoardSocket } from "../../context/BoardSocketContext";
+import { useSocket } from "../../context/SocketContext";
 import { useAuthStore } from "../../zustand/authStore/useAuthStore";
 import { useSearchUser } from "../../hooks/useSearchUser";
 
@@ -51,7 +51,7 @@ export const ColumnView = () => {
   );
 
   const { searchName, setSearchName, usersByName } = useSearchUser(500);
-  const { sendJsonMessage, isConnected, lastJsonMessage } = useBoardSocket();
+  const { sendJsonMessage, isConnected, lastJsonMessage } = useSocket();
 
   useEffect(() => {
     setBoardColumns(data.columns.columns ?? []);

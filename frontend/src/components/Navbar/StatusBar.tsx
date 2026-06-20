@@ -1,9 +1,9 @@
 import { Badge } from "@mantine/core";
 import { ReadyState } from "react-use-websocket";
-import { useBoardSocket } from "../../context/BoardSocketContext";
+import { useSocket } from "../../context/SocketContext";
 
 export const SocketStatusBadge = () => {
-  const { readyState } = useBoardSocket();
+  const { readyState } = useSocket();
 
   const label =
     readyState === ReadyState.OPEN

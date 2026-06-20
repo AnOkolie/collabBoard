@@ -11,6 +11,9 @@ import cardRoutes from "./src/routes/card.route.js";
 import columnRoutes from "./src/routes/columns.route.js";
 import authRoutes from "./src/routes/auth.route.js";
 import userRoutes from "./src/routes/user.route.js";
+import conversationRoutes from "./src/routes/conversation.route.js";
+import messageRoutes from "./src/routes/message.route.js";
+import activityRoutes from "./src/routes/activity.route.js";
 
 import { wss, webSocketSetup } from "./src/websockets/socket.js";
 import { socketAuthMiddleware } from "./src/middleware/socket.middleware.js";
@@ -57,12 +60,20 @@ app.use("/api", userRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api", cardRoutes);
 app.use("/api", columnRoutes);
+app.use("/api", messageRoutes);
+app.use("/api", conversationRoutes);
+app.use("/api", activityRoutes);
 
 const startServer = async () => {
-  initSubscriber();
-  server.listen(port, () => {
-    console.log(`Server running on port ${port}`);
-    test();
-  });
+  try {
+    console.log("Starting server...");
+    await initSubscriber();
+    server.listen(port, () => {
+      console.log(`Server running on port ${port}`);
+      test();
+    });
+  } catch (err) {
+    console.error("error starting server", err);
+  }
 };
 startServer();

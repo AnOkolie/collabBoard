@@ -1,7 +1,6 @@
 export type userObject = {
   id: string;
   email: string;
-  createdAt: Date;
   username: string;
   profilepic: string;
 };
@@ -16,6 +15,8 @@ export type findUserBody = {
   email: string;
   username: string;
   profilepic: string;
+  friendshipStatus: "friends" | "pending" | "blocked" | null;
+  sender: string;
 };
 
 export type SearchResponse = {

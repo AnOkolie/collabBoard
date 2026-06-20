@@ -5,15 +5,13 @@ import { useAuthStore } from "../../zustand/authStore/useAuthStore";
 export const loginAction = async ({ request }: ActionFunctionArgs) => {
   const formData = await request.formData();
   if (!formData) return { error: "Form Data error", status: 500 };
-  const email = formData.get("email") as string;
+  const email = (formData.get("email") as string) ?? null;
   const password = formData.get("password") as string;
-  if (!email || !password) {
+  const username = (formData.get("username") as string) ?? null;
+  if ((!email && !username) || !password) {
     return { error: "Please fill in all fields" };
   }
-  const response = await login(
-    formData.get("email") as string,
-    formData.get("password") as string,
-  );
+  const response = await login(password, email, username);
   if (response.error && !response.data) {
     return {
       error: response.error.message || "Login failed",
@@ -22,13 +20,17 @@ export const loginAction = async ({ request }: ActionFunctionArgs) => {
   }
   if (response.data) {
     const userData = await response.data.user;
-    useAuthStore.getState().setAuthUser({
-      id: userData.id,
-      email: userData.email,
-      username: userData.username,
-      createdAt: userData.createdAt,
-      profilepic: userData.profilepic,
-    });
+    try {
+      useAuthStore.getState().setAuthUser({
+        id: userData.id,
+        email: userData.email,
+        username: userData.username,
+        profilepic: userData.profilepic,
+      });
+    } catch (err) {
+      console.error("error updating user zustand", err);
+    }
+
     if (response.data.token) {
       const token = response.data.token;
       localStorage.setItem("token", token);

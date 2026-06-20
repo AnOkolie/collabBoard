@@ -21,7 +21,7 @@ import {
   PROJECT_HEADER_TEXT,
 } from "../../constants/string";
 import { useAuthStore } from "../../zustand/authStore/useAuthStore";
-import { useBoardSocket } from "../../context/BoardSocketContext";
+import { useSocket } from "../../context/SocketContext";
 import { useEffect } from "react";
 import { OnlineUsers } from "../../types/user";
 import { useState } from "react";
@@ -35,7 +35,7 @@ export const BoardHeader = ({
   onOpenCreateColumn,
 }: BoardHeaderProps) => {
   const [onlineUsers, setOnlineUsers] = useState<OnlineUsers[]>([]);
-  const { lastJsonMessage } = useBoardSocket();
+  const { lastJsonMessage } = useSocket();
   useEffect(() => {
     if (!lastJsonMessage) return;
     const { type } = lastJsonMessage;

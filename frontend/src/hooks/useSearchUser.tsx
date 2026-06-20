@@ -15,7 +15,7 @@ export const useSearchUser = (delay: number) => {
       if (searchName.trim()) {
         const trimmed = searchName.trim();
         if (trimmed === lastQueryRef.current) return;
-        fetcher.load(`/search?username=${encodeURIComponent(searchName)}`);
+        fetcher.load(`/search?username=${encodeURIComponent(trimmed)}`);
         lastQueryRef.current = trimmed;
       }
     }, delay);
@@ -23,9 +23,14 @@ export const useSearchUser = (delay: number) => {
     return () => clearTimeout(timeout);
   }, [searchName, delay, fetcher]);
 
+  useEffect(() => {
+    if (!searchName.trim()) {
+      lastQueryRef.current = "";
+    }
+  }, [searchName]);
+
   const usersByName = fetcher.data?.data ?? [];
   const isLoading = fetcher.state === "loading";
-
   return {
     searchName,
     setSearchName,

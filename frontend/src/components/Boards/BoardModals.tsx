@@ -16,7 +16,7 @@ import {
   RENAME_BUTTON_TEXT,
 } from "../../constants/string";
 import { useEffect } from "react";
-import { useBoardSocket } from "../../context/BoardSocketContext";
+import { useSocket } from "../../context/SocketContext";
 type DisclosureHandlers = {
   open: () => void;
   close: () => void;
@@ -61,7 +61,7 @@ export const BoardModals = ({
   const actionData = useActionData() as {
     data: { message: string; board: { id: string } };
   };
-  const { sendJsonMessage } = useBoardSocket();
+  const { sendJsonMessage } = useSocket();
   useEffect(() => {
     if (!actionData || !actionData.data) return;
     //sendJsonMessage to subscribe

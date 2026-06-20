@@ -17,7 +17,7 @@ import { BoardType } from "../../types/boards";
 import { BoardsGrid } from "./BoardsGrid";
 import { BoardStatsPanel } from "./BoardStatsPanel";
 import { BoardModals } from "./BoardModals";
-import { useBoardSocket } from "../../context/BoardSocketContext";
+import { useSocket } from "../../context/SocketContext";
 
 type LoaderData = {
   boards: {
@@ -37,12 +37,14 @@ export const BoardPage = () => {
   const [boardTitle, setBoardTitle] = useState("");
   const [newBoardTitle, setNewBoardTitle] = useState("");
   const [selectedBoardId, setSelectedBoardId] = useState("");
-  const [rows, setRows] = useState<BoardType[]>(loaderData?.boards?.board);
+  const [rows, setRows] = useState<BoardType[]>(
+    loaderData?.boards?.board ?? [],
+  );
   const [createBoardOpened, createBoardHandlers] = useDisclosure(false);
   const [boardActionsOpened, boardActionsHandlers] = useDisclosure(false);
   const [deleteBoardOpened, deleteBoardHandlers] = useDisclosure(false);
   const [renameBoardOpened, renameBoardHandlers] = useDisclosure(false);
-  const boardDetails = useMemo(() => stats, [stats]);
+  const boardDetails = stats;
 
   const boardProgress = useMemo(() => {
     const total = stats?.total ?? 0;
@@ -50,14 +52,10 @@ export const BoardPage = () => {
     if (!total) return 0;
     return Math.round((completed / total) * 100);
   }, [stats]);
-
-  let noBoards = false;
-  if (rows === undefined || rows.length === 0) {
-    noBoards = true;
-  }
+  const noBoards = rows.length === 0;
 
   const handleCreateBoardSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    if (!boardTitle.trim()) {
+    if (!boardTitle || !boardTitle.trim()) {
       e.preventDefault();
       return;
     }
@@ -78,14 +76,20 @@ export const BoardPage = () => {
     setSelectedBoardId(boardId);
     boardActionsHandlers.open();
   };
-  const { sendJsonMessage, lastJsonMessage, isConnected } = useBoardSocket();
+  const { sendJsonMessage, lastJsonMessage, isConnected } = useSocket();
 
   useEffect(() => {
     if (!loaderData) return;
-    setRows(loaderData.boards.board);
+    setRows(loaderData.boards.board ?? []);
   }, [loaderData]);
   useEffect(() => {
-    if (!isConnected || !selectedBoardId) return;
+    if (
+      !isConnected ||
+      typeof selectedBoardId !== "string" ||
+      !selectedBoardId.trim()
+    ) {
+      return;
+    }
 
     sendJsonMessage({
       type: "board:join",
@@ -107,24 +111,35 @@ export const BoardPage = () => {
   useEffect(() => {
     if (!lastJsonMessage) return;
     const { type } = lastJsonMessage;
-    if (type === "board:deleted") {
-      const deletedBoard = lastJsonMessage.payload as BoardType;
+    switch (type) {
+      case "board:deleted":
+        const deletedBoard = lastJsonMessage.payload as BoardType;
 
-      setRows((prevRows) =>
-        prevRows.filter((item) => item.id !== deletedBoard.id),
-      );
-    }
-    if (type === "board:updated") {
-      const updatedBoard = lastJsonMessage.payload as BoardType;
+        setRows((prevRows) =>
+          prevRows.filter((item) => item.id !== deletedBoard.id),
+        );
+        break;
 
-      setRows((prevRows) =>
-        prevRows.filter((item) => item.id !== updatedBoard.id),
-      );
-      setRows([...rows, updatedBoard]);
-    }
-    if (type === "board:joined") {
-      const newBoard = lastJsonMessage.payload as BoardType;
-      setRows([...rows, newBoard]);
+      case "board:updated":
+        const updatedBoard = lastJsonMessage.payload as BoardType;
+
+        setRows((prevRows) => [
+          ...prevRows.filter((item) => item.id !== updatedBoard.id),
+
+          updatedBoard,
+        ]);
+        break;
+      case "board:joined":
+        const newBoard = lastJsonMessage.payload as BoardType;
+
+        setRows((prevRows) => [
+          ...prevRows.filter((item) => item.id !== newBoard.id),
+
+          newBoard,
+        ]);
+        break;
+      default:
+        console.warn("Unhandled websocket message", lastJsonMessage);
     }
   }, [lastJsonMessage]);
 

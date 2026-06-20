@@ -4,95 +4,138 @@ import {
   Button,
   TextInput,
   Loader,
-  Container,
-  Flex,
-  Center,
-  Card,
+  ThemeIcon,
+  Divider,
   Title,
   Stack,
   Anchor,
 } from "@mantine/core";
-import { use, useEffect, useState } from "react";
-import { Form, useActionData } from "react-router-dom";
+import { IconLayoutKanban } from "@tabler/icons-react";
+import { useLocation, useSubmit } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Form, Link, useActionData } from "react-router-dom";
 import { displayNotifications } from "../../utilities/displayNotifications";
 import { useNavigate } from "react-router-dom";
 import { WELCOME_TEXT } from "../../constants/string";
+import { AuthLayout } from "../AuthLayout/AuthLayout";
+import { validateEmail } from "../../utilities/verification/emailVerification";
 export const Login = () => {
+  return (
+    <>
+      <AuthLayout children={<LoginBody />} />
+    </>
+  );
+};
+
+const LoginBody = () => {
   const actionData = useActionData();
-  const [email, setEmail] = useState("");
+  const [loginId, setLoginId] = useState("");
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const location = useLocation();
   const navigate = useNavigate();
+  const submit = useSubmit();
   const handleLogin = (e: React.SubmitEvent<HTMLFormElement>) => {
-    if (!email || !password) {
-      e.preventDefault();
+    e.preventDefault();
+    if (!loginId || !password) {
       displayNotifications("Error", "Please fill in all fields", "red");
       return;
     }
-    setIsSubmitting(true);
+    const formData = new FormData(e.currentTarget);
+    formData.delete("email");
+    formData.delete("password");
+    formData.append("password", password.trim());
+    if (validateEmail(loginId, false)) {
+      formData.append("email", loginId.trim());
+    } else {
+      formData.append("username", loginId.trim());
+    }
+
+    submit(formData, { method: "POST", encType: "multipart/form-data" });
   };
 
   useEffect(() => {
     setIsSubmitting(false);
     if (!actionData) return;
     if (actionData.error) {
-      displayNotifications("Login error", actionData.error.error, "red");
+      displayNotifications("Login error", actionData.error, "red");
     } else {
+      displayNotifications("Login", "Welcome back ", "green");
       navigate("/");
     }
   }, [actionData]);
+
   return (
-    <Container fluid p="xl">
-      <Center h="80vh">
-        <Stack gap="md">
-          <Title fw={700}>{WELCOME_TEXT}</Title>
-          <Card
-            w={420}
-            radius="lg"
-            shadow="lg"
-            p="xl"
-            withBorder
-            style={{
-              background: "linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%)",
-            }}
-          >
-            <Stack gap="md">
-              <Title order={2} ta="center">
-                Login
-              </Title>
+    <>
+      <Stack gap="lg">
+        <Stack align="center" gap="xs">
+          <ThemeIcon size={64} radius="xl" variant="light" color="blue">
+            <IconLayoutKanban size={32} />
+          </ThemeIcon>
 
-              <Form method="post" onSubmit={handleLogin}>
-                <Stack gap="md">
-                  <TextInput
-                    label="Email"
-                    placeholder="Enter your email"
-                    name="email"
-                    required
-                    onChange={(e) => setEmail(e.target.value)}
-                  />
+          <Title order={2}>CollabBoard</Title>
 
-                  <PasswordInput
-                    label="Password"
-                    placeholder="Enter your password"
-                    name="password"
-                    required
-                    onChange={(e) => setPassword(e.target.value)}
-                  />
-
-                  <Button fullWidth type="submit" color="purple" mt="sm">
-                    {isSubmitting ? <Loader size="xs" /> : "Login"}
-                  </Button>
-                </Stack>
-              </Form>
-              <Flex justify={"center"}>
-                <Text>
-                  Don't have an account <Anchor href="/signup"> Sign In</Anchor>
-                </Text>
-              </Flex>
-            </Stack>
-          </Card>
+          <Text c="dimmed" size="sm" ta="center">
+            Real-time collaboration made simple
+          </Text>
         </Stack>
-      </Center>
-    </Container>
+
+        <Divider />
+
+        <Stack gap={4}>
+          <Title ta="center" order={3}>
+            Welcome Back
+          </Title>
+
+          <Text ta="center" c="dimmed" size="sm">
+            Sign in to continue collaborating
+          </Text>
+        </Stack>
+
+        <Form method="post" onSubmit={handleLogin}>
+          <Stack gap="md">
+            <TextInput
+              label="Email or Username"
+              placeholder="Sign in with your email or username"
+              name="email"
+              radius="md"
+              variant="filled"
+              size="md"
+              required
+              onChange={(e) => setLoginId(e.target.value)}
+            />
+
+            <PasswordInput
+              label="Password"
+              placeholder="Enter your password"
+              name="password"
+              radius="md"
+              variant="filled"
+              size="md"
+              required
+              onChange={(e) => setPassword(e.target.value)}
+            />
+
+            <Button
+              fullWidth
+              radius="md"
+              size="md"
+              mt="xs"
+              type="submit"
+              onClick={() => setIsSubmitting(true)}
+            >
+              {isSubmitting ? <Loader size="xs" /> : "Sign In"}
+            </Button>
+          </Stack>
+        </Form>
+
+        <Text ta="center" c="dimmed" size="sm">
+          Don't have an account?{" "}
+          <Anchor component={Link} to="/signup">
+            Create one
+          </Anchor>
+        </Text>
+      </Stack>
+    </>
   );
 };

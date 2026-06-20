@@ -3,12 +3,13 @@ import { RequestMethods, RequestResolve } from "../types/requests";
 import { LoginResponse } from "../types/auth";
 
 export const login = async (
-  email: string,
   password: string,
+  email?: string,
+  username?: string,
 ): Promise<RequestResolve<LoginResponse>> =>
   await request(
     RequestMethods.POST,
     "auth/login",
     undefined,
-    JSON.stringify({ email, password }),
+    JSON.stringify({ email, username, password }),
   );

@@ -5,22 +5,19 @@ import { useAuthStore } from "../../zustand/authStore/useAuthStore";
 export const authLoader = async () => {
   try {
     const res = await checkAuthOnLoad();
-
-    if (!res?.data?.user) {
-      useAuthStore.setState({
-        authUser: null,
-        isCheckingAuth: false,
-      });
-      throw redirect("/login");
-    }
+    const user = res?.data?.user;
 
     useAuthStore.setState({
-      authUser: res.data.user,
+      authUser: user ?? null,
       isCheckingAuth: false,
     });
 
-    return res.data.user;
-  } catch (error) {
+    if (!user) {
+      throw redirect("/login");
+    }
+
+    return user;
+  } catch {
     useAuthStore.setState({
       authUser: null,
       isCheckingAuth: false,

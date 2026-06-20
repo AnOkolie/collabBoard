@@ -2,6 +2,7 @@ import { profile } from "node:console";
 import { pool } from "../db/db.js";
 import bcrypt from "bcrypt";
 import cloudinary from "../utils/cloudinary.js";
+import { prisma } from "../db/prisma.js";
 
 export const updateUser = async (req, res) => {
   const { user_id: userId } = req.params;
@@ -103,28 +104,108 @@ export const updateProfile = async (req, res) => {
 
 export const findUserByName = async (req, res) => {
   const { username } = req.query;
-  if (!username) {
-    return res.status(400).json({ error: "Provide a username" });
-  }
-  try {
-    const result = await pool.query(
-      "SELECT id, username, email, profilepic FROM users WHERE username ILIKE $1",
-      [`%${username}%`],
-    );
-    if (result.rows.length === 0) {
-      return res.status(404).json({
-        error: `We couldn't find "${username}". You should invite them to join our app`,
-      });
-    }
+  const { user_id } = req.params;
 
+  if (!username) {
+    return res.status(400).json({
+      error: "Provide a username",
+    });
+  }
+
+  try {
+    const requestMap = new Map();
+    const friendMap = new Map();
+    const users = await prisma.users.findMany({
+      where: {
+        username: {
+          contains: username,
+          mode: "insensitive",
+        },
+      },
+      select: {
+        id: true,
+        username: true,
+        email: true,
+        profilepic: true,
+      },
+    });
+    const requests = await prisma.friendship_requests.findMany({
+      where: {
+        OR: [
+          {
+            user_id: user_id,
+            friend_id: { in: users.map((user) => user.id) },
+          },
+          {
+            friend_id: user_id,
+            user_id: { in: users.map((user) => user.id) },
+          },
+        ],
+      },
+      select: {
+        user_id: true,
+        friend_id: true,
+        status: true,
+      },
+    });
+    const friends = await prisma.friends.findMany({
+      where: {
+        OR: [
+          {
+            user_id: user_id,
+            friend_id: { in: users.map((user) => user.id) },
+          },
+          {
+            friend_id: user_id,
+            user_id: { in: users.map((user) => user.id) },
+          },
+        ],
+      },
+      select: {
+        user_id: true,
+        friend_id: true,
+        status: true,
+      },
+    });
+
+    for (const r of requests) {
+      requestMap.set(mapKey(r.friend_id, r.user_id), r);
+    }
+    for (const f of friends) {
+      friendMap.set(mapKey(f.friend_id, f.user_id), f);
+    }
+    const formattedUsers = users.map((user) => {
+      const key = mapKey(user_id, user.id);
+      const friend = friendMap.get(key);
+      const request = requestMap.get(key);
+      const isSender =
+        request?.user_id === user_id || friend?.user_id === user_id;
+      return {
+        id: user.id,
+        email: user.email,
+        username: user.username,
+        profilepic: user.profilepic,
+
+        friendshipStatus: friend?.status ?? request?.status ?? null,
+
+        sender: isSender ? user_id : (request?.user_id ?? null),
+      };
+    });
     return res.status(200).json({
       message: "Retrieved users",
-      data: result.rows,
+      data: formattedUsers,
     });
   } catch (error) {
     console.error("Error finding user:", error);
-    return res.status(500).json({ error: "Internal server error" });
+
+    return res.status(500).json({
+      error: "Internal server error",
+    });
   }
+};
+
+const mapKey = (a, b) => {
+  return a < b ? `${a}:${b}` : `${b}:${a}`;
 };
 
 export const getProfilePicture = async (user_id) => {
@@ -143,3 +224,5 @@ export const getProfilePicture = async (user_id) => {
     console.log({ error: "Error retrieving profile:", err });
   }
 };
+
+// SELECT u.id, u.profilepic, u.username, u.email, uf.status, uf.request_sender FROM users as u LEFT JOIN user_friendships as uf ON u.id = uf.user_id OR u.id = uf.friend_id WHERE (uf.user_id='c004a3e5-84fc-4ab1-8266-775bba866de0' OR uf.friend_id='c004a3e5-84fc-4ab1-8266-775bba866de0') AND username='anthony'

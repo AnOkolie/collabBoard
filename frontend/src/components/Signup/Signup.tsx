@@ -4,38 +4,36 @@ import {
   Button,
   TextInput,
   Title,
-  Box,
-  Container,
-  Paper,
   Anchor,
   Group,
+  Divider,
+  ThemeIcon,
+  Stack,
   Checkbox,
 } from "@mantine/core";
-import { use, useEffect, useState } from "react";
-import { Form, useActionData } from "react-router-dom";
+import { Loader } from "@mantine/core";
+import { act, useEffect, useState } from "react";
+import { Form, Link, useActionData } from "react-router-dom";
 import { displayNotifications } from "../../utilities/displayNotifications";
 import { useNavigate } from "react-router-dom";
-import {
-  SIGN_UP_ALREADY_HAVE_ACCOUNT_TEXT,
-  SIGN_UP_BUTTON_TEXT,
-  SIGN_UP_DESCRIPTION,
-  SIGN_UP_HEADER,
-  SIGN_UP_RULE_1,
-  SIGN_UP_RULE_2,
-  SIGN_UP_RULE_3,
-  SIGN_UP_RULE_4,
-  SIGN_UP_RULE_5,
-  SIGN_UP_SIGN_IN_BUTTON_TEXT,
-} from "../../constants/string";
-import { LOGIN } from "../../constants/routes";
-import { useAuthStore } from "../../zustand/authStore/useAuthStore";
+import { SIGN_UP_BUTTON_TEXT } from "../../constants/string";
+import { IconLayoutKanban } from "@tabler/icons-react";
+import { AuthLayout } from "../AuthLayout/AuthLayout";
+import { error } from "node:console";
 export const Signup = () => {
+  return (
+    <>
+      <AuthLayout children={<SignupBody />} />
+    </>
+  );
+};
+
+const SignupBody = () => {
   const actionData = useActionData();
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [password1, setPassword1] = useState("");
   const [password2, setPassword2] = useState("");
-  const [loading, setLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
   const passwordLen = 8;
@@ -56,96 +54,118 @@ export const Signup = () => {
   };
 
   useEffect(() => {
+    setIsSubmitting(false);
     if (!actionData) return;
     if (actionData.error) {
+      displayNotifications("Signup Error", actionData.error.error, "red");
     } else {
       displayNotifications("Success", "Account created successfully", "green");
       navigate("/");
     }
-  });
-
+  }, [actionData]);
   return (
-    <Box
-      style={{
-        alignItems: "center",
-        background: "linear-gradient(135deg, #e0f0ff 0%, #4a90e2 100%)",
-        backgroundColor: "#f0f0f0",
-        display: "flex",
-        justifyContent: "center",
-        margin: "0",
-        minHeight: "center",
-        padding: "20px",
-      }}
-    >
-      <Container className="classes.container" my={40} size={420}>
-        <Paper mt={30} p={22} radius="lg" withBorder>
-          <Text c={rules.matchesLen ? "green" : "red"}>{SIGN_UP_RULE_1}</Text>
-        </Paper>
-        <Paper mt={30} p={22} radius="lg" withBorder>
-          <Title ff="Inter, sans-serif" ta="center">
-            {SIGN_UP_HEADER}
-          </Title>
-          <Text c="dimmed" style={{ textAlign: "center" }}>
-            {SIGN_UP_DESCRIPTION}
-          </Text>
-          <Form method="post" onSubmit={handleClick}>
-            <TextInput
-              label="Full Name"
-              name="name"
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Enter your full name"
-              radius="md"
+    <>
+      <Stack align="center" mb="lg">
+        <ThemeIcon size={60} radius="xl" variant="light" color="blue">
+          <IconLayoutKanban size={30} />
+        </ThemeIcon>
+
+        <Title order={1}>CollabBoard</Title>
+
+        <Text c="dimmed" ta="center">
+          Real-time collaboration made simple
+        </Text>
+      </Stack>
+      <Divider my="md" />
+      <Title ta="center" order={2}>
+        Create Account
+      </Title>
+
+      <Text c="dimmed" ta="center">
+        Get started with your workspace today
+      </Text>
+      <Text size="sm" c={rules.matchesLen ? "green" : "dimmed"}>
+        ✓ Minimum 8 characters
+      </Text>
+      <Form method="post" onSubmit={handleClick}>
+        <Stack>
+          <TextInput
+            label="Username"
+            name="name"
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Enter your full name"
+            required
+            radius="md"
+            variant="filled"
+            size="md"
+          />
+          <TextInput
+            label="Email"
+            name="email"
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="yourname@gmail.com"
+            radius="md"
+            variant="filled"
+            size="md"
+            required
+          />
+          <PasswordInput
+            label="Create Password"
+            mt="md"
+            name="password"
+            onChange={(e) => setPassword1(e.target.value)}
+            placeholder="Create a password"
+            radius="md"
+            variant="filled"
+            size="md"
+            required
+          />
+          <PasswordInput
+            fw={600}
+            label="Confirm Password"
+            mt="md"
+            onChange={(e) => setPassword2(e.target.value)}
+            placeholder="Confirm your password"
+            radius="md"
+            variant="filled"
+            size="md"
+            required
+          />
+          <Group justify="space-between" mt="lg">
+            <Checkbox
+              label={
+                <>
+                  I agree to the{" "}
+                  <Anchor size="sm" href="/terms">
+                    Terms of Service
+                  </Anchor>{" "}
+                  and{" "}
+                  <Anchor size="sm" href="/privacy">
+                    Privacy Policy
+                  </Anchor>
+                </>
+              }
               required
-              variant="filled"
             />
-            <TextInput
-              label="Email"
-              name="email"
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="yourname@gmail.com"
-              required
-              variant="filled"
-            />
-            <PasswordInput
-              label="Create Password"
-              mt="md"
-              name="password"
-              onChange={(e) => setPassword1(e.target.value)}
-              placeholder="Create a password"
-              required
-              variant="filled"
-            />
-            <PasswordInput
-              fw={600}
-              label="Confirm Password"
-              mt="md"
-              onChange={(e) => setPassword2(e.target.value)}
-              placeholder="Confirm your password"
-              radius="md"
-              required
-              variant="filled"
-            />
-            <Group justify="space-between" mt="lg">
-              <Checkbox
-                fw={700}
-                label="I agree to the Terms and Conditions"
-                required
-                variant="filled"
-              />
-            </Group>
-            <Button fullWidth mt="xl" radius="md" type="submit">
-              {SIGN_UP_BUTTON_TEXT}
-            </Button>
-          </Form>
-          <br />
-          <Text c="dimmed" style={{ textAlign: "center" }}>
-            {SIGN_UP_ALREADY_HAVE_ACCOUNT_TEXT}{" "}
-            <Anchor onClick={() => navigate(LOGIN)} styles={{}}>
-              {SIGN_UP_SIGN_IN_BUTTON_TEXT}
-            </Anchor>
-          </Text>
-        </Paper>
-      </Container>
-    </Box>
+          </Group>
+          <Button
+            fullWidth
+            radius="md"
+            size="md"
+            color="blue"
+            type="submit"
+            onClick={() => setIsSubmitting(true)}
+          >
+            {isSubmitting ? <Loader size="xs" /> : "Create Account"}
+          </Button>
+        </Stack>
+      </Form>
+      <Text ta="center" c="dimmed" size="sm">
+        Already have an account?{" "}
+        <Anchor component={Link} to="/login">
+          Sign in
+        </Anchor>
+      </Text>
+    </>
   );
 };

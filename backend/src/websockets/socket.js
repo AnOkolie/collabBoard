@@ -20,6 +20,11 @@ import {
   leaveBoard,
   closeSocket,
 } from "./boards.js";
+import {
+  friendRequest,
+  friendRequestUpdate,
+  dropFriendRequest,
+} from "./friends.js";
 
 const userSocketMap = new Map();
 
@@ -37,8 +42,9 @@ export const webSocketSetup = () => {
     ws.on("message", async (message) => {
       try {
         const data = JSON.parse(message);
+        console.log("Received", data);
         const { type } = data;
-        if (type === "friend-request") {
+        if (type === "friend-request:sent") {
           const { user_id, friend_id } = data;
           friendRequest(user_id, friend_id, ws);
         } else if (type === "board-invite") {
@@ -53,6 +59,15 @@ export const webSocketSetup = () => {
         } else if (type == "board:leave") {
           const { payload } = data;
           leaveBoard(payload, ws);
+        } else if (type == "message:sent" || type == "message:edited") {
+          const { payload } = data;
+          broadcastMessage(type, payload);
+        } else if (type === "friend-request:response") {
+          const { user_id, friend_id, response } = data;
+          friendRequestUpdate(user_id, friend_id, ws, response);
+        } else if (type === "friend-request:unsend") {
+          const { user_id, friend_id } = data;
+          dropFriendRequest(user_id, friend_id, ws);
         }
       } catch (err) {
         console.log("Message err: ", err);

@@ -2,6 +2,7 @@ import jwt from "jsonwebtoken";
 import cookie from "cookie";
 import { ENV } from "../utils/env.js";
 import { pool } from "../db/db.js";
+import { prisma } from "../db/prisma.js";
 
 export const socketAuthMiddleware = async (req) => {
   const url = new URL(req.url, "http://localhost:3000");
@@ -11,18 +12,24 @@ export const socketAuthMiddleware = async (req) => {
     throw new Error("Unauthorized - No Token Provided");
   }
 
-  const { sub } = jwt.verify(token, ENV.JWT_SECRET);
+  const { id, email } = jwt.verify(token, ENV.ACCESS_SECRET);
 
-  if (!sub) {
+  if (!id) {
     throw new Error("Unauthorized - Invalid Token");
   }
+  const result = await prisma.users.findUnique({
+    where: {
+      id: id,
+    },
+    select: {
+      id: true,
+      email: true,
+      username: true,
+      profilepic: true,
+    },
+  });
 
-  const result = await pool.query(
-    "SELECT id, email, username, profilepic FROM users WHERE id = $1",
-    [sub],
-  );
-
-  const user = result.rows[0];
+  const user = result;
 
   if (!user) {
     throw new Error("User not found");

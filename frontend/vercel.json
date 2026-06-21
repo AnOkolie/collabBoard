@@ -3,6 +3,10 @@
     {
       "source": "/api/:path*",
       "destination": "https://collabboard-production-1ae6.up.railway.app/api/*"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/"
     }
   ]
 }

@@ -4,3 +4,8 @@ export type activityCenter = {
   boardInvites?: BoardInvitesStructure;
   friendInvites?: FriendRequestStructure;
 };
+
+export type ActivityData = {
+  boardInvites?: BoardInvitesStructure[];
+  friendRequests?: FriendRequestStructure[];
+};

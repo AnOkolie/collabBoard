@@ -8,18 +8,18 @@ import { RequestMethods } from "../types/requests";
 import { useAuthStore } from "../zustand/authStore/useAuthStore";
 import { RequestResolve } from "../types/requests";
 
-export const getBoards = async (): Promise<RequestResolve<boardResponse>> =>
-  await request(
-    RequestMethods.GET,
-    `boards/${useAuthStore.getState().authUser?.id}`,
-  );
+export const getBoards = async (
+  userId: string,
+): Promise<RequestResolve<boardResponse>> =>
+  await request(RequestMethods.GET, `boards/${userId}`);
 
 export const addBoard = async (
   boardTitle: string,
+  userId: string,
 ): Promise<RequestResolve<BoardCreateRequest>> =>
   await request(
     RequestMethods.POST,
-    `boards/${useAuthStore.getState().authUser?.id}`,
+    `boards/${userId}`,
     undefined,
     JSON.stringify({ title: boardTitle }),
   );

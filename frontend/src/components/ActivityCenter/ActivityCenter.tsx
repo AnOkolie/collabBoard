@@ -19,7 +19,7 @@ export const ActivityCenter = ({
   notifDrawerHandler,
   notifDrawerOpened,
 }: ActivityCenterProps) => {
-  const { activityNotif } = useActivityHook();
+  const { activityNotif, setActivityNotif } = useActivityHook();
   const notifLength =
     (activityNotif?.boardInvites?.length ?? 0) +
     (activityNotif?.friendRequests?.length ?? 0);
@@ -35,8 +35,14 @@ export const ActivityCenter = ({
         overlayProps={{ backgroundOpacity: 0.3, blur: 2 }}
         size="md"
       >
-        <FriendRequests friendRequests={activityNotif?.friendRequests ?? []} />
-        <BoardInvites boardInvites={activityNotif?.boardInvites ?? []} />
+        <FriendRequests
+          friendRequests={activityNotif?.friendRequests ?? []}
+          setActivityNotif={setActivityNotif}
+        />
+        <BoardInvites
+          boardInvites={activityNotif?.boardInvites ?? []}
+          setActivityNotif={setActivityNotif}
+        />
       </Drawer>
       <Button
         variant="transparent"

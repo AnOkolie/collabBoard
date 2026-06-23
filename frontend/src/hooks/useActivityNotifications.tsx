@@ -4,11 +4,7 @@ import { useEffect, useState } from "react";
 import { useAuthStore } from "../zustand/authStore/useAuthStore";
 import { FriendRequestStructure } from "../types/friends";
 import { useSocket } from "../context/SocketContext";
-
-type ActivityData = {
-  boardInvites?: BoardInvitesStructure[];
-  friendRequests?: FriendRequestStructure[];
-};
+import { ActivityData } from "../types/activity";
 
 export const useActivityHook = () => {
   const fetcher = useFetcher<ActivityData>();
@@ -61,6 +57,7 @@ export const useActivityHook = () => {
 
   return {
     activityNotif,
+    setActivityNotif,
     isLoading: fetcher.state !== "idle",
   };
 };

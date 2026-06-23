@@ -4,8 +4,12 @@ import { useAuthStore } from "../../zustand/authStore/useAuthStore";
 
 export const authLoader = async () => {
   try {
-    const res = await checkAuthOnLoad();
-    const user = res?.data?.user;
+    const token = localStorage.getItem("token");
+    if (!token) {
+      throw new Error("missing token");
+    }
+    const res = await checkAuthOnLoad(token);
+    const user = res.data?.user;
 
     useAuthStore.setState({
       authUser: user ?? null,

@@ -253,3 +253,39 @@ const usernameLogin = async (username, userPassword, req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 };
+
+export const verifyToken = async (req, res) => {
+  const { token } = req.body;
+  if (!token) {
+    return res.status(400).json({ error: "No token provided" });
+  }
+  try {
+    const { id } = jwt.decode(token);
+    const result = await prisma.users.findUnique({
+      where: {
+        id: id,
+      },
+      select: {
+        username: true,
+        profilepic: true,
+        email: true,
+        id: true,
+      },
+    });
+    if (!result) {
+      return res.status(401).json({ error: "Unauthorized user" });
+    }
+
+    const user = {
+      id: result.id,
+      username: result.username,
+      email: result.email,
+      profilepic: result.profilepic,
+    };
+    console.log("user", user);
+    return res.status(200).json({ user });
+  } catch (err) {
+    console.error("Error authenticatiing user", err);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+};

@@ -5,6 +5,7 @@ import { useSocket } from "../../context/SocketContext";
 import { useRef } from "react";
 
 import { FriendRequestStructure } from "../../types/friends";
+import { ActivityData } from "~/types/activity";
 type DisclosureHandlers = {
   open: () => void;
   close: () => void;
@@ -13,9 +14,14 @@ type DisclosureHandlers = {
 
 type ActivityCenterProps = {
   friendRequests: FriendRequestStructure[];
+  setActivityNotif: React.Dispatch<React.SetStateAction<ActivityData>>;
 };
 
-export const FriendRequests = ({ friendRequests }: ActivityCenterProps) => {
+export const FriendRequests = ({
+  friendRequests,
+  setActivityNotif,
+}: ActivityCenterProps) => {
+  if (!friendRequests) return null;
   const { sendJsonMessage, lastJsonMessage } = useSocket();
   const userId = useAuthStore((state) => state.authUser?.id);
 
@@ -28,6 +34,12 @@ export const FriendRequests = ({ friendRequests }: ActivityCenterProps) => {
       user_id: myId,
       response: response,
     });
+    setActivityNotif((prev) => ({
+      ...prev,
+      friendRequests: (prev.friendRequests ?? []).filter(
+        (friend) => friend.friend_id !== friendId,
+      ),
+    }));
   };
 
   return (

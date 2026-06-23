@@ -13,9 +13,10 @@ type combinedLoader = {
 
 export const boardLoader = async () => {
   const id = useAuthStore.getState().authUser?.id;
+  if (!id) return;
   const [boardRes, boardHistoryRes] = await Promise.all([
-    getBoards(),
-    boardHistory(id!),
+    getBoards(id),
+    boardHistory(id),
   ]);
   return {
     boards: boardRes.data,

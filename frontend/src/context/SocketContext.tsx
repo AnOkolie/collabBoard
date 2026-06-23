@@ -1,10 +1,7 @@
 import { createContext, useContext, useMemo, type ReactNode } from "react";
 import { ReadyState } from "react-use-websocket";
 import { useSocketConnection } from "../hooks/useSocketConnection";
-import {
-  useBoardInviteHandler,
-  useTypedBoardMessage,
-} from "../hooks/useBoardInvitations";
+import { useTypedBoardMessage } from "../hooks/useBoardInvitations";
 
 import { BoardSocketContextValue } from "../types/socket";
 import { useFriendRequestNotifications } from "../hooks/useFriendRequestNotification";

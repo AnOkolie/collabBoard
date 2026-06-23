@@ -17,6 +17,7 @@ import {
 } from "../../constants/string";
 import { useEffect } from "react";
 import { useSocket } from "../../context/SocketContext";
+import { useAuthUser } from "../../hooks/useAuthUser";
 type DisclosureHandlers = {
   open: () => void;
   close: () => void;
@@ -62,6 +63,7 @@ export const BoardModals = ({
     data: { message: string; board: { id: string } };
   };
   const { sendJsonMessage } = useSocket();
+  const { userId } = useAuthUser();
   useEffect(() => {
     if (!actionData || !actionData.data) return;
     //sendJsonMessage to subscribe
@@ -90,6 +92,7 @@ export const BoardModals = ({
               value={boardTitle}
               onChange={(e) => setBoardTitle(e.currentTarget.value)}
             />
+            <TextInput name="userId" value={userId} type="hidden" />
             <Button
               fullWidth
               mt="md"

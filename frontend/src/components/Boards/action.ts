@@ -1,12 +1,19 @@
-import { add } from "@dnd-kit/utilities";
 import { addBoard, deleteBoard, renameBoard } from "../../api/boardpage";
-import { rename } from "node:fs";
+import { useAuthStore } from "../../zustand/authStore/useAuthStore";
+import { useAuthUser } from "../../hooks/useAuthUser";
 
-const addBoardAction = async (boardTitle: string) => {
-  if (typeof boardTitle !== "string" || !boardTitle.trim()) {
-    return { error: "Board title is required", status: 400 };
+const addBoardAction = async (boardTitle: string, userId: string) => {
+  console.log("add board");
+  try {
+    console.log("about to call api");
+    if (typeof boardTitle !== "string" || !boardTitle.trim() || !userId) {
+      return { error: "Board title is required", status: 400 };
+    }
+    console.log("api call ");
+    return addBoard(boardTitle, userId);
+  } catch (err) {
+    console.error("error getting id", err);
   }
-  return addBoard(boardTitle);
 };
 
 const renameAction = async (boardId: string, newTitle: string) => {
@@ -28,7 +35,9 @@ export const boardAction = async ({ request }: { request: Request }) => {
   switch (intent) {
     case "add-board":
       const boardTitle = formData.get("boardTitle");
-      return await addBoardAction(boardTitle as string);
+      const userId = formData.get("userId");
+      console.log("boardTitile", boardTitle);
+      return await addBoardAction(boardTitle as string, userId as string);
     case "rename-action":
       return await renameAction(
         formData.get("boardId") as string,

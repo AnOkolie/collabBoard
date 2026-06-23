@@ -1,7 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { userObject } from "../../types/user";
-import { checkAuth } from "../../api/auth";
 
 interface AuthState {
   authUser: userObject | null;

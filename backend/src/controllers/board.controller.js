@@ -1,5 +1,6 @@
 import { pool } from "../db/db.js";
 import { broadcastBoard } from "../websockets/boards.js";
+import { prisma } from "../db/prisma.js";
 
 export const getBoard = async (req, res) => {
   const { user_id } = req.params;
@@ -375,5 +376,75 @@ export const fetchBoardInvites = async (req, res) => {
   } catch (error) {
     console.error("error retrieving board invites", error);
     return res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+export const getAllBoardDetailsTwo = async (req, res) => {
+  const { user_id: userId } = req.params;
+
+  if (!userId) {
+    return res.status(400).json({ error: "Missing userId field" });
+  }
+
+  const boardsMap = new Map();
+  boardsMap.set("total", 0);
+
+  try {
+    const result = await prisma.boards.findMany({
+      where: {
+        OR: [
+          {
+            board_members: {
+              some: {
+                user_id: userId,
+              },
+            },
+          },
+          {
+            user_id: userId,
+          },
+        ],
+      },
+      select: {
+        columns: {
+          select: {
+            title: true,
+            id: true,
+            cards: {
+              select: {
+                id: true,
+                title: true,
+              },
+            },
+          },
+        },
+        title: true,
+      },
+    });
+    const total = result.length;
+    const boardStats = new Map();
+    boardStats.set("total", total);
+    for (const res of result) {
+      const column = res.columns;
+      for (const col of column) {
+        if (!boardStats.has(col.title)) {
+          boardStats.set(col.title, 0);
+        }
+        boardStats.set(col.title, boardStats.get(col.title) + col.cards.length);
+      }
+    }
+
+    return res.status(200).json({
+      message: "All boards history",
+      data: {
+        title: result.map((tit) => tit.title),
+        columns: result.map((col) => col.columns),
+        cards: result.map((col) => col.columns.map((card) => card.cards)),
+        stats: Object.fromEntries(boardStats),
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching board details:", error);
+    return res.status(500).json({ error: "Internal Server Error!" });
   }
 };

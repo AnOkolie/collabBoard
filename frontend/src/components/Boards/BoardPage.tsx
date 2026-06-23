@@ -24,15 +24,16 @@ type LoaderData = {
     board: BoardType[];
   };
   stats: {
-    data: Record<string, number>;
+    data: {
+      stats: Record<string, number>;
+    };
   };
 };
 
 export const BoardPage = () => {
   const navigate = useNavigate();
   const loaderData = useLoaderData() as LoaderData;
-
-  const stats = loaderData?.stats?.data ?? {};
+  const stats = loaderData?.stats?.data.stats ?? {};
 
   const [boardTitle, setBoardTitle] = useState("");
   const [newBoardTitle, setNewBoardTitle] = useState("");
@@ -54,7 +55,7 @@ export const BoardPage = () => {
   }, [stats]);
   const noBoards = rows.length === 0;
 
-  const handleCreateBoardSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleCreateBoardSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
     if (!boardTitle || !boardTitle.trim()) {
       e.preventDefault();
       return;
@@ -63,7 +64,7 @@ export const BoardPage = () => {
     setBoardTitle("");
   };
 
-  const handleRenameBoardSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleRenameBoardSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
     if (!newBoardTitle.trim()) {
       e.preventDefault();
       return;

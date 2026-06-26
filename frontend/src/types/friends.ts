@@ -6,3 +6,12 @@ export type FriendRequestStructure = {
     username: string;
   };
 };
+
+export type allFriends = {
+  id: string;
+  username: string;
+  email: string;
+  profilepic: string;
+  sender: string;
+  friendshipStatus: "friends" | "pending" | "blocked" | null;
+};

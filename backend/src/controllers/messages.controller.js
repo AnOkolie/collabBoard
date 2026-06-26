@@ -1,5 +1,4 @@
 import { prisma } from "../db/prisma.js";
-
 export const getMessagesById = async (req, res) => {
   const { conversation_id, user_id } = req.params;
   console.log(user_id);
@@ -57,7 +56,7 @@ export const getMessagesById = async (req, res) => {
             message_type: true,
           },
           orderBy: {
-            created_at: "desc",
+            created_at: "asc",
           },
           take: 50,
         },
@@ -184,35 +183,71 @@ export const updateMessage = async (req, res) => {
   }
 };
 
-export const createMessage = async (req, res) => {
-  const senderId = req.user.id;
-
-  const { conversation_id, content, message_type, metadata } = req.body;
-
+export const createMessage = async (
+  sender_id,
+  conversation_id,
+  content,
+  message_type,
+  attachments,
+) => {
   try {
     const membership = await prisma.conversation_members.findUnique({
       where: {
         conversation_id_user_id: {
           conversation_id,
-          user_id: senderId,
+          user_id: sender_id,
         },
       },
     });
 
     if (!membership) {
-      return res.status(403).json({
-        error: "Not a member",
-      });
+      return { error: "Cant send message" };
     }
 
     const message = await prisma.$transaction(async (tx) => {
       const created = await tx.messages.create({
         data: {
           conversation_id,
-          sender_id: senderId,
+          sender_id: sender_id,
           content,
           message_type,
-          metadata,
+          attachments: {
+            create: attachments,
+          },
+        },
+        select: {
+          id: true,
+          attachments: true,
+          sender_id: true,
+          conversation_id: true,
+          content: true,
+          message_type: true,
+          conversations: {
+            select: {
+              conversation_members: {
+                where: {
+                  user_id: {
+                    not: sender_id,
+                  },
+                },
+                select: {
+                  users: {
+                    select: {
+                      id: true,
+                      username: true,
+                    },
+                  },
+                },
+              },
+              conversation_reads: true,
+              created_at: true,
+              created_by: true,
+            },
+          },
+          edited_at: true,
+          deleted_at: true,
+          message_reactions: true,
+          metadata: true,
         },
       });
 
@@ -226,19 +261,23 @@ export const createMessage = async (req, res) => {
           updated_at: new Date(),
         },
       });
-
+      await tx.conversation_members.findMany({
+        where: {
+          conversation_id: conversation_id,
+        },
+      });
       return created;
     });
 
-    return res.status(201).json({
+    return {
       data: message,
-    });
+    };
   } catch (err) {
     console.error(err);
 
-    return res.status(500).json({
+    return {
       error: "Internal server error",
-    });
+    };
   }
 };
 

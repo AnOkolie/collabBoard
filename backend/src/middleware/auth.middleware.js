@@ -26,7 +26,8 @@ export const protectRoute = async (req, res, next) => {
     req.user = { ...user.rows[0], password: undefined }; //add this custom user to the next function
     next();
   } catch (error) {
-    return res.status(500).json({ message: "Internal Server Error" });
+    console.error("Error protecting route:", error);
+    return res.status(401).json({ message: "Internal Server Error" });
   }
 };
 

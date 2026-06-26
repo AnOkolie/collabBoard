@@ -11,6 +11,7 @@ import {
 import {
   IconGitFork,
   IconHome,
+  IconMessage,
   IconSettings,
   IconUpload,
   IconUser,
@@ -108,6 +109,13 @@ export const BoardHeader = ({
             onClick={onOpenMembers}
           >
             Members
+          </Button>
+          <Button
+            variant="default"
+            leftSection={<IconMessage size={16} />}
+            onClick={onOpenMembers}
+          >
+            Channel
           </Button>
           <Button leftSection={<IconUpload size={16} />}>
             {EXPORT_DATA_BUTTON_TEXT}

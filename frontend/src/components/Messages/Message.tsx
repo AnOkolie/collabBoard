@@ -15,6 +15,7 @@ import {
 import { useLoaderData } from "react-router-dom";
 import { useEffect } from "react";
 import { EmptyConversation } from "./EmptyConversation";
+
 type loaderDataType = {
   data: {
     messages: {
@@ -23,23 +24,10 @@ type loaderDataType = {
   };
 };
 export const Message = () => {
-  // const channel = {
-  //   id: "st",
-  //   name: "string",
-  //   type: "string",
-  //   displayPicture: "string",
-  //   directConversationKey: "string",
-  //   user: {
-  //     username: "string",
-  //     profilePicture: "string",
-  //     id: "string",
-  //     role: "string",
-  //   },
-  // };
-  // const { channel } = useOutletContext<OutletContext>();
   const [channel, setChannel] = useState<UserConversation[]>([]);
   const [message, setMessages] = useState<conversationMessage>();
   const loaderData = useLoaderData() as loaderDataType;
+
   useEffect(() => {
     if (!loaderData) return;
     console.log("loader data messages", loaderData.data.messages.data);
@@ -74,7 +62,7 @@ export const Message = () => {
 
         {/* INPUT */}
         <Box p="sm" bd="1px solid var(--mantine-color-default-border)">
-          <MessageInput conversation={channel[0]} />
+          <MessageInput conversation={loaderData.data.messages.data} />
         </Box>
       </Flex>
     </>

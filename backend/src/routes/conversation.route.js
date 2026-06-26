@@ -11,8 +11,6 @@ const router = express.Router();
 
 router.get("/conversations/:user_id", protectRoute, getUserConversations);
 
-router.post("/conversations/direct", protectRoute, createDirectConversation);
-
 router.post("/conversations/group", protectRoute, createGroupConversation);
 
 router.get(

@@ -7,27 +7,43 @@ import { useEffect } from "react";
 import { displayNotifications } from "../../utilities/displayNotifications";
 import { useFetcher, useNavigate } from "react-router-dom";
 import { getOrCreateDirectConversation } from "../../services/getOrCreateConversation";
+import { useFriendSocket } from "../../hooks/useFriendSocket";
+import { useSearchUser } from "../../hooks/useSearchUser";
+import { useState } from "react";
+
 type Props = {
   user: findUserBody;
   onSendRequest: (id: string) => void;
+  size?: number;
+  search?: string;
+  setSearch?: React.Dispatch<React.SetStateAction<string>>;
 };
 
-export const UserSearchButton = ({ user, onSendRequest }: Props) => {
+export const UserSearchButton = ({
+  user,
+  onSendRequest,
+  size = 18,
+  search = "",
+  setSearch = () => {},
+}: Props) => {
   const userId = useAuthStore.getState().authUser?.id;
   const { sendJsonMessage, lastJsonMessage } = useSocket();
+  const { respondToFriendRequest } = useFriendSocket();
   const fetcher = useFetcher();
   const navigate = useNavigate();
-  const handleClick = (messageType: string, response?: string) => {
+
+  const handleClick = (
+    messageType: string,
+    response?: "accepted" | "decline",
+  ) => {
+    console.log(userId ? "hanlde clisk" : "id is empty");
     if (!userId) return;
     switch (messageType) {
       case "response":
         if (!response) return;
-        sendJsonMessage({
-          type: `friend-request:${messageType}`,
-          user_id: userId,
-          friend_id: user.id,
-          response,
-        });
+        console.log(`${response}ing request`);
+        respondToFriendRequest(user.sender, response);
+        setSearch(search);
         break;
       case "unsend":
         sendJsonMessage({
@@ -89,16 +105,16 @@ export const UserSearchButton = ({ user, onSendRequest }: Props) => {
             <Button
               variant="outline"
               c={"green"}
-              onClick={() => handleClick("accepted")}
+              onClick={() => handleClick("response", "accepted")}
             >
-              <IconUserPlus />
+              <IconUserPlus size={size} />
             </Button>
             <Button
               variant="outline"
               c={"red"}
-              onClick={() => handleClick("decline")}
+              onClick={() => handleClick("response", "decline")}
             >
-              <IconUserMinus />
+              <IconUserMinus size={size} />
             </Button>
           </>
         );
@@ -120,7 +136,7 @@ export const UserSearchButton = ({ user, onSendRequest }: Props) => {
     default:
       return (
         <Button variant="outline" onClick={() => onSendRequest(user.id)}>
-          <IconUserPlus size={18} />
+          <IconUserPlus size={size} />
         </Button>
       );
   }

@@ -6,12 +6,8 @@ import {
 } from "../../api/messages";
 
 import { useAuthStore } from "../../zustand/authStore/useAuthStore";
-import {
-  combinedLoader,
-  conversationMessage,
-  fullConversation,
-} from "../../types/messages";
-import { UserConversation } from "../../types/messages";
+import { conversationMessage } from "../../types/messages";
+
 type loader = {
   data: {
     messages: conversationMessage | [];

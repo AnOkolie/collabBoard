@@ -10,19 +10,27 @@ import { useEffect, useState } from "react";
 import { displayNotifications } from "../../utilities/displayNotifications";
 import { ChatBubble } from "./ChatBubble";
 import { useAuthStore } from "../../zustand/authStore/useAuthStore";
+import { useMessageStore } from "../../zustand/messageStore/useMessageStore";
 interface messageListProps {
   messages: conversationMessage;
 }
 export const MessageList = ({ messages }: messageListProps) => {
-  const loaderData = useLoaderData<combinedLoader>();
+  const { setMessage, messages: messageList } = useMessageStore();
+  console.log("api messages:", messages);
+  console.log(messageList);
+  useEffect(() => {
+    if (!messages) return;
+    setMessage(messages.messages);
+  }, [messages]);
 
   const userId = useAuthStore.getState().authUser?.id;
   return (
     <>
-      {messages &&
-        messages.messages.map((message) => (
+      {messageList &&
+        messageList.map((message) => (
           <ChatBubble
-            message={message.content}
+            key={message.id}
+            message={message}
             isUser={message.senderId === userId}
           />
         ))}

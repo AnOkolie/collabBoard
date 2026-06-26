@@ -1,4 +1,5 @@
 import { prisma } from "../db/prisma.js";
+import { getActiveStatus } from "../services/activeStatus.js";
 
 export const getUserConversations = async (req, res) => {
   const { user_id } = req.params;
@@ -71,7 +72,7 @@ export const getUserConversations = async (req, res) => {
       data: formattedConversations,
     });
   } catch (err) {
-    console.error(err);
+    console.error("error finding user conversations:", err);
 
     return res.status(500).json({
       error: "Internal server error",
@@ -101,8 +102,49 @@ export const getDirectConversation = async (req, res) => {
       select: {
         id: true,
         type: true,
-        display_picture: true,
+        conversation_members: {
+          where: {
+            user_id: friend_id,
+          },
+          select: {
+            users: {
+              select: {
+                id: true,
+                username: true,
+                profilepic: true,
+              },
+            },
+          },
+        },
         name: true,
+        direct_conversation_key: true,
+        last_message_id: true,
+        messages: {
+          select: {
+            id: true,
+            conversation_id: true,
+            sender_id: true,
+            content: true,
+            users: {
+              select: {
+                profilepic: true,
+                username: true,
+                id: true,
+              },
+            },
+            message_type: true,
+            message_reactions: true,
+            conversation_reads: true,
+            created_at: true,
+            edited_at: true,
+            metadata: true,
+            attachments: true,
+          },
+          orderBy: {
+            created_at: "asc",
+          },
+        },
+        conversation_reads: true,
       },
     });
     if (!conversation) {
@@ -124,19 +166,38 @@ export const getDirectConversation = async (req, res) => {
         select: {
           id: true,
           type: true,
-          profilePicture: true,
+          conversation_members: {
+            where: {
+              user_id: friend_id,
+            },
+            select: {
+              users: {
+                select: {
+                  id: true,
+                  username: true,
+                  profilepic: true,
+                },
+              },
+            },
+          },
           name: true,
+          direct_conversation_key: true,
+          last_message_id: true,
+          messages: true,
+          conversation_reads: true,
         },
       });
 
-      return res
-        .status(201)
-        .json({ message: "New conversation created", newConversation });
+      return res.status(201).json({
+        message: "New conversation created",
+        conversation: formatDirectConversation(newConversation),
+      });
     }
 
-    return res
-      .status(200)
-      .json({ message: "Conversation found", conversation });
+    return res.status(200).json({
+      message: "Conversation found",
+      conversation: formatDirectConversation(conversation),
+    });
   } catch (err) {
     console.error("Error retrieving conversations (direct)", err);
     return res.status(500).json({ error: "Internal server error" });
@@ -265,5 +326,21 @@ const formattedConversation = (convo) => {
     displayPicture: convo.displayPicture,
     name: convo.name,
     type: convo.type,
+  };
+};
+
+const formatDirectConversation = (convo) => {
+  return {
+    id: convo.id,
+    type: convo.type,
+    displayPicture:
+      convo.displayPicture ?? convo.conversation_members.profilepic,
+    directConversationKey: convo.direct_conversation_key,
+    lastMessageId: convo.last_message_id,
+    conversationMembers: convo.conversation_members,
+    conversationReads: convo.conversation_reads,
+    messages: convo.messages,
+    name: convo.name ?? convo.conversation_members.username,
+    activeStatus: getActiveStatus(convo.conversation_members.id),
   };
 };

@@ -2,7 +2,7 @@ import { ReadyState } from "react-use-websocket";
 import { CardType, ColumnType } from "../columns";
 import { BoardType } from "../boards";
 import { OnlineUsers } from "../user";
-import { messagesResponse } from "../messages";
+import { fullMessageResponse, messagesResponse } from "../messages";
 
 export type IncomingBoardEvent =
   | {
@@ -111,10 +111,7 @@ export type IncomingBoardEvent =
     }
   | {
       type: "message:received";
-      payload: {
-        conversation_id: string;
-        message: messagesResponse;
-      };
+      payload: fullMessageResponse;
     }
   | {
       type: "friend-request:received";

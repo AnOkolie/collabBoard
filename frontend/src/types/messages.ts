@@ -35,6 +35,7 @@ export type fullConversation = {
   conversationMembers: userObject[];
   messages: messagesResponse;
   conversationReads: conversation_reads;
+  activityStatus: "online" | "offline";
 };
 
 export type conversationMessage = {
@@ -43,28 +44,7 @@ export type conversationMessage = {
     users: conversationUsersBody;
   }[];
   type: string;
-  messages: {
-    id: string;
-    content: string;
-    senderId: string;
-    messageType: string;
-    createdAt: string;
-    editedAt: string;
-    deletedAt: string;
-    users: conversationUsersBody;
-    attachments: {
-      fileName: string;
-      fileSize: number;
-      fileUrl: string;
-      createdAt: string;
-      deletedAt: string;
-    }[];
-    messageReactions: {
-      userId: string;
-      reaction: string;
-      createdAt: string;
-    }[];
-  }[];
+  messages: fullMessageResponse[];
   directConversationKey: string;
   displayPicture: string;
   conversationReads: {
@@ -78,7 +58,7 @@ export type conversationMessage = {
 
 type conversationUsersBody = {
   username: string;
-  profilepic: string;
+  profilepic: string | null;
   id: string;
 };
 
@@ -86,13 +66,17 @@ export type messageBody = {
   conversationId: string;
   senderId: string;
   content: string;
-  messageType: string[];
+  messageType: string;
   attachments: attachmentBody[];
 };
 
 export type attachmentBody = {
   fileName: string;
   fileSize: number;
+  mimeType: string;
+  fileUrl: string;
+  created_at?: string;
+  deleted_at?: string;
 };
 
 export type messagesResponse = {
@@ -138,4 +122,21 @@ export type combinedLoader = {
     messages: messagesResponse[];
   };
   error: boolean;
+};
+
+export type fullMessageResponse = {
+  id: string;
+  content: string;
+  senderId: string;
+  messageType: string;
+  createdAt?: string;
+  editedAt?: string;
+  deletedAt?: string;
+  users: conversationUsersBody;
+  attachments: attachmentBody[];
+  messageReactions?: {
+    userId: string;
+    reaction: string;
+    createdAt: string;
+  }[];
 };

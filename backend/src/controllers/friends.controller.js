@@ -29,12 +29,18 @@ export const updateFriendship = async (user_id, friend_id, status) => {
     return;
   }
   try {
-    const acceptRequest = await prisma.friendship_requests.delete({
+    const acceptRequest = await prisma.friendship_requests.deleteMany({
       where: {
-        user_id_friend_id: {
-          user_id: user_id,
-          friend_id: friend_id,
-        },
+        OR: [
+          {
+            user_id,
+            friend_id,
+          },
+          {
+            user_id: friend_id,
+            friend_id: user_id,
+          },
+        ],
       },
     });
     if (!acceptRequest) {
@@ -152,3 +158,122 @@ export const dropFriendship = async (user_id, friend_id) => {
 function getRecipient(userId, friendId, senderId) {
   return senderId === userId ? friendId : userId;
 }
+
+export const getAllFriends = async (req, res) => {
+  const { user_id } = req.params;
+  if (!user_id) {
+    return res.status(400).json({ error: "Missing required fields" });
+  }
+  try {
+    const friends = await prisma.users.findFirst({
+      where: {
+        id: user_id,
+      },
+      select: {
+        friendshipRequestsReceived: {
+          select: {
+            requester: {
+              select: {
+                username: true,
+                email: true,
+                profilepic: true,
+                id: true,
+              },
+            },
+            status: true,
+          },
+        },
+        friendshipRequestsSent: {
+          select: {
+            recipient: {
+              select: {
+                username: true,
+                email: true,
+                profilepic: true,
+                id: true,
+              },
+            },
+            status: true,
+            user_id: true,
+          },
+        },
+        friendsInitiated: {
+          select: {
+            friend: {
+              select: {
+                username: true,
+                email: true,
+                profilepic: true,
+                id: true,
+              },
+            },
+            status: true,
+          },
+        },
+        friendsReceived: {
+          select: {
+            user: {
+              select: {
+                username: true,
+                email: true,
+                profilepic: true,
+                id: true,
+              },
+            },
+            status: true,
+          },
+        },
+      },
+    });
+
+    const friendsCombined = [
+      ...friends.friendsInitiated,
+      ...friends.friendsReceived,
+      ...friends.friendshipRequestsReceived,
+      ...friends.friendshipRequestsSent,
+    ];
+    console.log(friends.friendsReceived);
+
+    return res.status(200).json({
+      message: "User friendships",
+      friends: formatResponse(friendsCombined),
+    });
+  } catch (err) {
+    console.error("Error finding users friends", err);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+const formatResponse = (friends) => {
+  const result = friends.map((friend) => {
+    return {
+      id:
+        friend.requester?.id ??
+        friend.recipient?.id ??
+        friend.friend?.id ??
+        friend.user?.id,
+      username:
+        friend.requester?.username ??
+        friend.recipient?.username ??
+        friend.friend?.username ??
+        friend.user?.username,
+      email:
+        friend.requester?.email ??
+        friend.recipient?.email ??
+        friend.friend?.email ??
+        friend.user?.email,
+      profilepic:
+        friend.requester?.profilepic ??
+        friend.recipient?.profilepic ??
+        friend.friend?.profilepic ??
+        friend.user?.profilepic,
+      friendshipStatus: friend.status,
+      sender:
+        friend.requester?.id ??
+        friend.user_id ??
+        friend.user?.id ??
+        friend.friend?.id,
+    };
+  });
+  return result;
+};

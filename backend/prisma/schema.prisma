@@ -55,10 +55,10 @@ model cards {
   id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   column_id  String?   @db.Uuid
   content    String
-  created_at DateTime @default(now()) @db.Timestamp(6)
   updated_at DateTime? @default(now()) @db.Timestamp(6)
   state      String?   @db.VarChar(50)
   title      String?   @db.VarChar(25)
+  created_at DateTime  @default(now()) @db.Timestamp(6)
   columns    columns?  @relation(fields: [column_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 }
 
@@ -76,7 +76,7 @@ model users {
   username                                                   String                 @unique(map: "unique_username")
   password                                                   String
   profilepic                                                 String?
-  created_at DateTime @default(now()) @db.Timestamp(6)
+  created_at                                                 DateTime               @default(now()) @db.Timestamp(6)
   board_invitations_board_invitations_host_idTousers         board_invitations[]    @relation("board_invitations_host_idTousers")
   board_invitations_board_invitations_invited_user_idTousers board_invitations[]    @relation("board_invitations_invited_user_idTousers")
   board_members                                              board_members[]
@@ -85,12 +85,12 @@ model users {
   conversation_members                                       conversation_members[]
   conversation_reads                                         conversation_reads[]
   conversations                                              conversations[]
+  friendsReceived                                            friends[]              @relation("friend_friend")
+  friendsInitiated                                           friends[]              @relation("friend_user")
+  friendshipRequestsReceived                                 friendship_requests[]  @relation("friendship_recipient")
+  friendshipRequestsSent                                     friendship_requests[]  @relation("friendship_requester")
   message_reactions                                          message_reactions[]
   messages                                                   messages[]
-  friendshipRequestsSent     friendship_requests[] @relation("friendship_requester")
-  friendshipRequestsReceived friendship_requests[] @relation("friendship_recipient")
-  friendsInitiated friends[] @relation("friend_user")
-  friendsReceived  friends[] @relation("friend_friend")
 }
 
 model attachments {
@@ -99,7 +99,7 @@ model attachments {
   file_name  String
   file_url   String
   mime_type  String
-  file_size  BigInt
+  file_size  Int
   created_at DateTime? @default(now()) @db.Timestamptz(6)
   deleted_at DateTime?
   messages   messages  @relation(fields: [message_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_message_id")
@@ -163,7 +163,7 @@ model messages {
   conversation_id    String               @db.Uuid
   sender_id          String               @db.Uuid
   content            String?
-  message_type       message_types
+  message_type       message_type
   created_at         DateTime?            @default(now()) @db.Timestamptz(6)
   edited_at          DateTime?            @db.Timestamptz(6)
   deleted_at         DateTime?            @db.Timestamptz(6)
@@ -178,31 +178,25 @@ model messages {
 }
 
 model friends {
-  id String @id @default(uuid()) @db.Uuid
-
-  user_id   String @db.Uuid
-  friend_id String @db.Uuid
-  status String @default("friends")
-
+  id         String   @id @default(uuid()) @db.Uuid
+  user_id    String   @db.Uuid
+  friend_id  String   @db.Uuid
   created_at DateTime @default(now())
-
-  user   users @relation("friend_user", fields: [user_id], references: [id], onDelete: Cascade)
-  friend users @relation("friend_friend", fields: [friend_id], references: [id], onDelete: Cascade)
+  status     String   @default("friends")
+  friend     users    @relation("friend_friend", fields: [friend_id], references: [id], onDelete: Cascade)
+  user       users    @relation("friend_user", fields: [user_id], references: [id], onDelete: Cascade)
 
   @@unique([user_id, friend_id])
 }
 
 model friendship_requests {
-  id String @id @default(uuid())
-
-  user_id String @db.Uuid
-  friend_id String @db.Uuid
-  status String @default("pending")
-
+  id         String   @id @default(uuid())
+  user_id    String   @db.Uuid
+  friend_id  String   @db.Uuid
+  status     String   @default("pending")
   created_at DateTime @default(now())
-
-  requester users @relation("friendship_requester", fields: [user_id], references: [id])
-  recipient users @relation("friendship_recipient", fields: [friend_id], references: [id])
+  recipient  users    @relation("friendship_recipient", fields: [friend_id], references: [id])
+  requester  users    @relation("friendship_requester", fields: [user_id], references: [id])
 
   @@unique([user_id, friend_id])
 }
@@ -218,16 +212,14 @@ enum conversation_type {
   group
 }
 
-enum message_types {
-  Text
-  Image
-  File
-  System
-}
-
 enum friendship_status {
   pending
   accepted
   blocked
   declined
+}
+
+enum message_type {
+  user
+  system
 }

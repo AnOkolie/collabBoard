@@ -82,3 +82,4 @@ export const ERROR_BOUNDARY_PAGE_TEXT =
 export const PROJECT_HEADER_TEXT = "Project Dashboard";
 
 export const WELCOME_TEXT = "Welcome to Collab Board!";
+export const BUCKET_NAME = "collab-board-files";

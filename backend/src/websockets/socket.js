@@ -25,6 +25,7 @@ import {
   friendRequestUpdate,
   dropFriendRequest,
 } from "./friends.js";
+import { broadcastMessage } from "./messages.js";
 
 const userSocketMap = new Map();
 
@@ -61,7 +62,7 @@ export const webSocketSetup = () => {
           leaveBoard(payload, ws);
         } else if (type == "message:sent" || type == "message:edited") {
           const { payload } = data;
-          broadcastMessage(type, payload);
+          broadcastMessage(ws, payload.conversation_id, payload.message);
         } else if (type === "friend-request:response") {
           const { user_id, friend_id, response } = data;
           friendRequestUpdate(user_id, friend_id, ws, response);

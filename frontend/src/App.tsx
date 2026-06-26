@@ -32,6 +32,8 @@ import { conversationLoader } from "./components/Messages/conversationLoader";
 import { SocketListeners } from "./context/SocketListeners";
 import { ChannelList } from "./components/Messages/ChannelList";
 import { EmptyConversation } from "./components/Messages/EmptyConversation";
+import { Friends } from "./components/Friends/Friends";
+import { friendLoader } from "./components/Friends/loader";
 
 const router = createBrowserRouter([
   {
@@ -99,6 +101,11 @@ const router = createBrowserRouter([
             loader: messagesLoader,
           },
         ],
+      },
+      {
+        path: "friends",
+        element: <Friends />,
+        loader: friendLoader,
       },
       {
         path: "logout",

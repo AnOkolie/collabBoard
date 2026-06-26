@@ -16,7 +16,7 @@ import {
 import { Form, Outlet } from "react-router-dom";
 import {
   IconSearch,
-  IconBell,
+  IconUsers,
   IconCalendar,
   IconUser,
   IconMenu2,
@@ -123,6 +123,11 @@ export function Navbar() {
               href="/search"
             />
 
+            <NavLink
+              label={opened ? "Friends" : ""}
+              leftSection={<IconUsers size={30} />}
+              href="/friends"
+            />
             <NavLink
               label={opened ? "Messages" : ""}
               leftSection={<IconMessage size={30} />}

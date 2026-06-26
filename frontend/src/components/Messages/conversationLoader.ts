@@ -1,16 +1,7 @@
 import { LoaderFunctionArgs } from "react-router-dom";
-import {
-  getConversations,
-  getDirectConversation,
-  getMessagesByConversation,
-} from "../../api/messages";
+import { getConversations } from "../../api/messages";
 
 import { useAuthStore } from "../../zustand/authStore/useAuthStore";
-import {
-  combinedLoader,
-  conversationMessage,
-  fullConversation,
-} from "../../types/messages";
 import { UserConversation } from "../../types/messages";
 type loader = {
   data: {

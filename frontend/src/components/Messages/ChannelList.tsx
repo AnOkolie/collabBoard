@@ -24,7 +24,7 @@ import {
   IconMessagePlus,
   IconArrowLeft,
 } from "@tabler/icons-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAuthStore } from "../../zustand/authStore/useAuthStore";
 import { useSearchUser } from "../../hooks/useSearchUser";
 import { SearchUserComponent } from "../../hooks/useSearchUser";
@@ -46,12 +46,15 @@ type searchModalProps = {
 const UserSearchModal = ({ opened, setOpened }: searchModalProps) => {
   const { searchName, setSearchName, usersByName, isLoading } =
     useSearchUser(800);
-  const [friendId, setFriendId] = useState("");
+  // const [filteredNames, setFilteredNames] = useState(usersByName);
 
   const currId = useAuthStore.getState().authUser!.id ?? null;
 
   const filteredNames = usersByName.filter((user) => user.id !== currId);
   const { sendFriendRequest } = useFriendSocket();
+  // useEffect(() => {
+  //   setFilteredNames((prev) => prev.filter((user) => user.id !== currId));
+  // }, [usersByName]);
   return (
     <>
       <Grid>
@@ -96,6 +99,9 @@ const UserSearchModal = ({ opened, setOpened }: searchModalProps) => {
                         <UserSearchButton
                           user={user}
                           onSendRequest={() => sendFriendRequest(user.id)}
+                          size={14}
+                          search={searchName}
+                          setSearch={setSearchName}
                         />
                       </Flex>
                     </Group>
@@ -133,14 +139,7 @@ export const ChannelList = () => {
   };
 
   const navigate = useNavigate();
-  // const navigateToChat = async (conv_id: string) => {
-  //   if (!userId) return;
-  //   const res = await getMessages(conv_id);
-  //   if (!res) return;
-  //   console.log("target", targetConversation);
-  //   // setTargetConversation(channels.find((c) => c.id === conv_id));
-  //   navigate(`${userId}/${conv_id}`);
-  // };
+
   return (
     <AppShell padding={0}>
       <Flex h="100vh">
@@ -151,58 +150,62 @@ export const ChannelList = () => {
             borderRight: "1px solid var(--mantine-color-default-border)",
           }}
         >
-          <Flex direction="column" h="100%">
-            {/* SEARCH BAR */}
-            <Box p="sm">
-              <TextInput
-                leftSection={<IconSearch size={16} />}
-                placeholder="Search conversations..."
-                radius="md"
-              />
-            </Box>
+          {isOpen ? (
+            <UserSearchModal opened={isOpen} setOpened={setIsOpen} />
+          ) : (
+            <Flex direction="column" h="100%">
+              {/* SEARCH BAR */}
+              <Box p="sm">
+                <TextInput
+                  leftSection={<IconSearch size={16} />}
+                  placeholder="Search conversations..."
+                  radius="md"
+                />
+              </Box>
 
-            {/* CHANNEL LIST */}
-            <ScrollArea flex={1}>
-              <Stack gap={2} p="xs">
-                {channels.map((channel) => (
-                  <Paper
-                    key={channel.id}
-                    onClick={() => {
-                      setTargetConversation(channel);
-                      navigate(`${userId}/${channel.id}`);
-                    }}
-                    px="sm"
-                    py={10}
-                    style={{
-                      borderRadius: 8,
-                      cursor: "pointer",
-                    }}
-                    className="channel-item"
-                    bd="bottom 1px solid var(--mantine-color-gray-3)"
-                  >
-                    <Group gap="sm">
-                      <Avatar
-                        src={channel.displayPicture}
-                        radius="xl"
-                        size="sm"
-                      />
+              {/* CHANNEL LIST */}
+              <ScrollArea flex={0.9}>
+                <Stack gap={2} p="xs">
+                  {channels.map((channel) => (
+                    <Paper
+                      key={channel.id}
+                      onClick={() => {
+                        setTargetConversation(channel);
+                        navigate(`${userId}/${channel.id}`);
+                      }}
+                      px="sm"
+                      py={10}
+                      style={{
+                        borderRadius: 8,
+                        cursor: "pointer",
+                      }}
+                      className="channel-item"
+                      bd="bottom 1px solid var(--mantine-color-gray-3)"
+                    >
+                      <Group gap="sm">
+                        <Avatar
+                          src={channel.displayPicture}
+                          radius="xl"
+                          size="sm"
+                        />
 
-                      <Text size="sm" fw={500}>
-                        {channel.name ?? "Unknown"}
-                      </Text>
-                    </Group>
-                  </Paper>
-                ))}
-              </Stack>
-            </ScrollArea>
+                        <Text size="sm" fw={500}>
+                          {channel.name ?? "Unknown"}
+                        </Text>
+                      </Group>
+                    </Paper>
+                  ))}
+                </Stack>
+              </ScrollArea>
 
-            {/* BOTTOM ACTION */}
-            <Box p="sm">
-              <ActionIcon variant="light" radius="xl" onClick={handleClick}>
-                <IconMessagePlus size={18} />
-              </ActionIcon>
-            </Box>
-          </Flex>
+              {/* BOTTOM ACTION */}
+              <Box p="sm">
+                <ActionIcon variant="light" radius="xl" onClick={handleClick}>
+                  <IconMessagePlus size={18} />
+                </ActionIcon>
+              </Box>
+            </Flex>
+          )}
         </Box>
 
         {/* MAIN CONTENT */}

@@ -23,13 +23,13 @@ export const useFriendSocket = () => {
   );
 
   const respondToFriendRequest = useCallback(
-    (requesterId: string, response: "accepted" | "declined") => {
+    (requesterId: string, response: "accepted" | "decline") => {
       if (!currentUserId || !requesterId || !isConnected) return;
 
       sendJsonMessage({
-        type: "friend-request:response",
-        user_id: requesterId,
-        friend_id: currentUserId,
+        type: `friend-request:response`,
+        user_id: currentUserId,
+        friend_id: requesterId,
         response,
       });
     },

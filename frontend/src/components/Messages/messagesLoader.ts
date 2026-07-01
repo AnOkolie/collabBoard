@@ -24,7 +24,6 @@ export const messagesLoader = async ({
   try {
     if (!id || !convoId) throw new Error("No id given");
     const conversationMessages = await getMessagesByConversation(convoId, id);
-    console.log("user convos", conversationMessages);
     return {
       data: {
         messages: conversationMessages.data ?? [],

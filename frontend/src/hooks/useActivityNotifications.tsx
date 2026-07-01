@@ -5,12 +5,14 @@ import { useAuthStore } from "../zustand/authStore/useAuthStore";
 import { FriendRequestStructure } from "../types/friends";
 import { useSocket } from "../context/SocketContext";
 import { ActivityData } from "../types/activity";
+import { useActivityCentreStore } from "../zustand/activityCentreStore/useActivityCentreStore";
 
 export const useActivityHook = () => {
   const fetcher = useFetcher<ActivityData>();
   const { lastJsonMessage } = useSocket();
 
   const userId = useAuthStore((s) => s.authUser?.id);
+  const { setBoardActivity, setFriendActivity } = useActivityCentreStore();
   const [activityNotif, setActivityNotif] = useState<ActivityData>({
     boardInvites: [],
     friendRequests: [],
@@ -22,37 +24,10 @@ export const useActivityHook = () => {
   }, [userId]);
 
   useEffect(() => {
-    if (!lastJsonMessage) return;
-
-    switch (lastJsonMessage.type) {
-      case "friend-request:received":
-        setActivityNotif((prev) => ({
-          ...prev,
-          friendRequests: [
-            ...(prev.friendRequests ?? []),
-            lastJsonMessage.payload,
-          ],
-        }));
-        break;
-
-      case "board-invite":
-        setActivityNotif((prev) => ({
-          ...prev,
-          boardInvites: [
-            ...(prev?.boardInvites ?? []),
-            lastJsonMessage.payload,
-          ],
-        }));
-        break;
-
-      default:
-        break;
-    }
-  }, [lastJsonMessage]);
-  useEffect(() => {
     if (!fetcher.data) return;
-
     setActivityNotif(fetcher.data);
+    setBoardActivity(fetcher.data.boardInvites ?? []);
+    setFriendActivity(fetcher.data.friendRequests ?? []);
   }, [fetcher.data]);
 
   return {

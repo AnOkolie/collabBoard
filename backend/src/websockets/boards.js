@@ -15,6 +15,10 @@ import {
   boardInvitation,
   updateBoardInviteState,
 } from "../controllers/board.controller.js";
+import { stringify } from "node:querystring";
+import { createMessage } from "../controllers/messages.controller.js";
+import { SYSTEM_SENDER_ID } from "../utils/strings.js";
+import { generateUserJoinSystemMessage } from "../transformers/boards.js";
 
 export const handleBoardInvitation = async (user_id, friend_id, board_id) => {
   const ws = userSocketMap.get(user_id);
@@ -25,7 +29,7 @@ export const handleBoardInvitation = async (user_id, friend_id, board_id) => {
   if (!friend_id || !user_id || !board_id) {
     return ws.send(
       JSON.stringify({
-        type: "error",
+        type: "boards:error",
         code: 400,
         message: "Board invitation failed",
       }),
@@ -37,7 +41,7 @@ export const handleBoardInvitation = async (user_id, friend_id, board_id) => {
   if (result.error) {
     return ws.send(
       JSON.stringify({
-        type: "error",
+        type: "boards:error",
         message: result.error,
       }),
     );
@@ -83,7 +87,7 @@ export const updateBoardInvite = async (board_id, user_id, host_id, state) => {
   if (response.error) {
     return ws.send(
       JSON.stringify({
-        type: "error",
+        type: "boards:error",
         message: response.error,
       }),
     );
@@ -93,11 +97,28 @@ export const updateBoardInvite = async (board_id, user_id, host_id, state) => {
       boardRooms.set(board_id, new Set());
     }
     boardRooms.get(board_id).add(ws);
-    return ws.send(
+    ws.send(
       JSON.stringify({
         type: "board:joined",
         message: "You are now a member of this board",
         payload: response,
+      }),
+    );
+    const systemMessage = await createMessage(
+      SYSTEM_SENDER_ID,
+      undefined,
+      generateUserJoinSystemMessage(ws.user),
+      "system",
+      [],
+      board_id,
+    );
+    if (systemMessage.error) {
+      console.error("create message error", systemMessage.error);
+    }
+    return ws.send(
+      JSON.stringify({
+        type: "message:received",
+        payload: systemMessage.data,
       }),
     );
   }

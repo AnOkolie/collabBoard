@@ -1,7 +1,7 @@
 import { ReadyState } from "react-use-websocket";
 import { CardType, ColumnType } from "../columns";
 import { BoardType } from "../boards";
-import { OnlineUsers } from "../user";
+import { OnlineUsers, userObject } from "../user";
 import { fullMessageResponse, messagesResponse } from "../messages";
 
 export type IncomingBoardEvent =
@@ -106,7 +106,11 @@ export type IncomingBoardEvent =
       payload: OnlineUsers[];
     }
   | {
-      type: "error";
+      type: "friends:error";
+      message: string;
+    }
+  | {
+      type: "boards:error";
       message: string;
     }
   | {
@@ -131,5 +135,21 @@ export type IncomingBoardEvent =
     }
   | {
       type: "friend-request:removed";
+      message: string;
+    }
+  | {
+      type: "typing:start";
+      user_id: string;
+      conversationId: string;
+      users: userObject;
+    }
+  | {
+      type: "typing:stop";
+      user_id: string;
+      conversationId: string;
+      users: userObject;
+    }
+  | {
+      type: "typing:error";
       message: string;
     };

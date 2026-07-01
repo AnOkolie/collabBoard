@@ -3,13 +3,11 @@ import { useAuthStore } from "../../zustand/authStore/useAuthStore";
 import { useAuthUser } from "../../hooks/useAuthUser";
 
 const addBoardAction = async (boardTitle: string, userId: string) => {
-  console.log("add board");
   try {
-    console.log("about to call api");
     if (typeof boardTitle !== "string" || !boardTitle.trim() || !userId) {
       return { error: "Board title is required", status: 400 };
     }
-    console.log("api call ");
+
     return addBoard(boardTitle, userId);
   } catch (err) {
     console.error("error getting id", err);
@@ -36,7 +34,7 @@ export const boardAction = async ({ request }: { request: Request }) => {
     case "add-board":
       const boardTitle = formData.get("boardTitle");
       const userId = formData.get("userId");
-      console.log("boardTitile", boardTitle);
+
       return await addBoardAction(boardTitle as string, userId as string);
     case "rename-action":
       return await renameAction(

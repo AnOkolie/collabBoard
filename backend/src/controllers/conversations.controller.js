@@ -48,15 +48,19 @@ export const getUserConversations = async (req, res) => {
         error: "Conversations not found",
       });
     }
+
     const formattedConversations = conversations.map((convo) => {
       return {
         id: convo.id,
-        name: convo.name ?? convo.conversation_members[0].users.username,
         type: convo.type,
+        name:
+          convo.name ??
+          convo.conversation_members.map((member) => member.users.username),
         displayPicture:
           convo.display_picture ??
-          convo.conversation_members[0].users.profilepic ??
-          null,
+          convo.conversation_members.map((member) => {
+            member.users.profilepic;
+          }),
         directConversationKey: convo.direct_conversation_key ?? null,
         user: convo.conversation_members.map((u) => {
           return {
@@ -81,7 +85,6 @@ export const getUserConversations = async (req, res) => {
 };
 
 export const getDirectConversation = async (req, res) => {
-  console.log("url", req.url);
   const friend_id = req.query.friend_id;
   const { user_id } = req.params;
   if (!friend_id || !user_id) {
@@ -193,7 +196,6 @@ export const getDirectConversation = async (req, res) => {
         conversation: formatDirectConversation(newConversation),
       });
     }
-
     return res.status(200).json({
       message: "Conversation found",
       conversation: formatDirectConversation(conversation),
@@ -203,124 +205,57 @@ export const getDirectConversation = async (req, res) => {
     return res.status(500).json({ error: "Internal server error" });
   }
 };
-
-export const createDirectConversation = async (req, res) => {
-  const currentUserId = req.user.id;
-  const { friendId } = req.body;
-
-  if (!friendId) {
-    return res.status(400).json({
-      error: "friendId required",
-    });
+export const getGroupConversation = async (req, res) => {
+  const { board_id } = req.params;
+  if (!board_id) {
+    return res.status(400).json({ error: "Missing Required fields" });
   }
-
   try {
-    const key = [currentUserId, friendId].sort().join(":");
-
-    const existing = await prisma.conversations.findUnique({
+    const board = await prisma.boards.findUnique({
       where: {
-        direct_conversation_key: key,
+        id: board_id,
+      },
+      include: {
+        board_members: true,
+        conversations: {
+          include: {
+            conversation_members: true,
+            conversation_reads: true,
+            messages: {
+              orderBy: {
+                created_at: "asc",
+              },
+              include: {
+                users: {
+                  select: {
+                    id: true,
+                    username: true,
+                    profilepic: true,
+                  },
+                },
+              },
+            },
+          },
+        },
       },
     });
-
-    if (existing) {
-      return res.status(200).json({
-        data: existing,
+    if (!board) {
+      return res.status(404).json({
+        error: "Board not found",
       });
     }
-
-    const conversation = await prisma.$transaction(async (tx) => {
-      const created = await tx.conversations.create({
-        data: {
-          type: "direct",
-          created_by: currentUserId,
-          direct_conversation_key: key,
-        },
-      });
-
-      await tx.conversation_members.createMany({
-        data: [
-          {
-            conversation_id: created.id,
-            user_id: currentUserId,
-            role: "owner",
-          },
-          {
-            conversation_id: created.id,
-            user_id: friendId,
-            role: "member",
-          },
-        ],
-      });
-
-      return created;
-    });
-
-    return res.status(201).json({
-      data: conversation,
+    return res.status(200).json({
+      message: "Group conversation found",
+      data: formatGroupConversation(board.conversations) ?? null,
     });
   } catch (err) {
-    console.error(err);
-
-    return res.status(500).json({
-      error: "Internal server error",
-    });
-  }
-};
-
-export const createGroupConversation = async (req, res) => {
-  const currentUserId = req.user.id;
-
-  const { name, memberIds = [], display_picture } = req.body;
-
-  if (!name) {
-    return res.status(400).json({
-      error: "Group name required",
-    });
-  }
-
-  try {
-    const conversation = await prisma.$transaction(async (tx) => {
-      const created = await tx.conversations.create({
-        data: {
-          type: "group",
-          name,
-          created_by: currentUserId,
-          display_picture,
-        },
-      });
-
-      await tx.conversation_members.createMany({
-        data: [
-          {
-            conversation_id: created.id,
-            user_id: currentUserId,
-            role: "owner",
-          },
-          ...memberIds.map((id) => ({
-            conversation_id: created.id,
-            user_id: id,
-            role: "member",
-          })),
-        ],
-      });
-
-      return created;
-    });
-
-    return res.status(201).json({
-      data: conversation,
-    });
-  } catch (err) {
-    console.error(err);
-
-    return res.status(500).json({
-      error: "Internal server error",
-    });
+    console.log("error getting group conversations", err);
+    return res.status(500).json({ error: "Internal server error" });
   }
 };
 
 const formattedConversation = (convo) => {
+  if (!convo) return;
   return {
     id: convo.id,
     displayPicture: convo.displayPicture,
@@ -329,18 +264,90 @@ const formattedConversation = (convo) => {
   };
 };
 
-const formatDirectConversation = (convo) => {
+const formatDirectConversation = (convo, message_type = "direct") => {
   return {
     id: convo.id,
     type: convo.type,
     displayPicture:
-      convo.displayPicture ?? convo.conversation_members.profilepic,
+      convo.displayPicture ??
+      (message_type === "direct" && convo.conversation_members.profilepic),
     directConversationKey: convo.direct_conversation_key,
     lastMessageId: convo.last_message_id,
     conversationMembers: convo.conversation_members,
     conversationReads: convo.conversation_reads,
     messages: convo.messages,
-    name: convo.name ?? convo.conversation_members.username,
-    activeStatus: getActiveStatus(convo.conversation_members.id),
+    name: convo.name ?? convo.conversation_members.users[0].username,
+    activeStatus: getActiveStatus(convo.conversation_members[0].users.id),
   };
+};
+
+const formatGroupConversation = (conversation) => {
+  return {
+    id: conversation.id,
+    type: conversation.type,
+    directConversationKey: conversation.direct_conversation_key,
+    displayPicture: conversation.displayPicture,
+    lastMessageId: conversation.last_message_id,
+    name: conversation.name,
+    conversationMemebers: conversation.conversation_members.map((user) => {
+      return {
+        username: user.username,
+        profilepic: user.profilepic,
+        id: user.id,
+      };
+    }),
+    conversationReads: conversation.conversation_reads.map((read) => {
+      return {
+        userId: read.userId,
+        lastReadMessageId: read.last_read_message_id,
+        updatedAt: read.updated_at,
+      };
+    }),
+    messages: conversation.messages.map((message) => {
+      return {
+        id: message.id,
+        content: message.content,
+        senderId: message.sender_id,
+        messageType: message.message_type,
+        createdAt: message.created_at,
+        editedAt: message.edited_at,
+        deletedAt: message.deleted_at,
+        users: message.users,
+        attachments: message.attachments,
+        messageReactions: message.message_reactions,
+      };
+    }),
+  };
+};
+
+export const getConversationMembers = async (conversation_id, sender_id) => {
+  if (!conversation_id) {
+    return { error: "Missing required fields" };
+  }
+  try {
+    const members = await prisma.conversation_members.findMany({
+      where: {
+        conversation_id: conversation_id,
+        user_id: {
+          notIn: [sender_id],
+        },
+      },
+      select: {
+        user_id: true,
+      },
+    });
+    const user = await prisma.conversation_members.findFirst({
+      where: {
+        conversation_id: conversation_id,
+        user_id: sender_id,
+      },
+      select: {
+        users: true,
+      },
+    });
+    return { message: "Members found", data: members ?? [], user: user };
+  } catch (err) {
+    console.error("error retrieving members", err);
+    return { error: "Internal server error" };
+  }
 };

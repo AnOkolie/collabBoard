@@ -3,15 +3,12 @@ import { protectRoute } from "../middleware/auth.middleware.js";
 import { getMessagesById } from "../controllers/messages.controller.js";
 import {
   getUserConversations,
-  createDirectConversation,
-  createGroupConversation,
   getDirectConversation,
+  getGroupConversation,
 } from "../controllers/conversations.controller.js";
 const router = express.Router();
 
 router.get("/conversations/:user_id", protectRoute, getUserConversations);
-
-router.post("/conversations/group", protectRoute, createGroupConversation);
 
 router.get(
   "/conversations/:conversation_id/messages",
@@ -23,4 +20,6 @@ router.get(
   protectRoute,
   getDirectConversation,
 );
+
+router.get("/conversations/group/:board_id", getGroupConversation);
 export default router;

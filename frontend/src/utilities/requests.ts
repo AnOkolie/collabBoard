@@ -1,6 +1,7 @@
 import { RequestMethods, RequestResolve } from "../types/requests";
 import { CONTENT_TYPE } from "../constants/api";
 import { refreshResponse } from "../types/auth";
+import { useAuthStore } from "../zustand/authStore/useAuthStore";
 
 export const request = async <Type>(
   method: RequestMethods,
@@ -11,8 +12,8 @@ export const request = async <Type>(
 ): Promise<RequestResolve<Type>> => {
   try {
     const requestHeaders = new Headers();
+    const { token, deleteToken, setToken } = useAuthStore.getState();
     try {
-      const token = localStorage.getItem("token");
       if (token) {
         requestHeaders.append("Authorization", `Bearer ${token}`);
       }
@@ -53,7 +54,7 @@ export const request = async <Type>(
         );
 
         if (refreshResponse.error) {
-          localStorage.removeItem("token");
+          deleteToken();
           window.location.href = "/login";
           return {
             error: {
@@ -72,7 +73,8 @@ export const request = async <Type>(
               },
             };
           }
-          localStorage.setItem("token", token);
+          setToken(token);
+          // localStorage.setItem("token", token);
         }
 
         return request<Type>(method, path, headers, body, false);

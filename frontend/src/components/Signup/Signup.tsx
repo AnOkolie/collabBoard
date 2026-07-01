@@ -14,7 +14,7 @@ import {
 import { Loader } from "@mantine/core";
 import { act, useEffect, useState } from "react";
 import { Form, Link, useActionData } from "react-router-dom";
-import { displayNotifications } from "../../utilities/displayNotifications";
+import { displayNotifications } from "../../utilities/notification/displayNotifications";
 import { useNavigate } from "react-router-dom";
 import { SIGN_UP_BUTTON_TEXT } from "../../constants/string";
 import { IconLayoutKanban } from "@tabler/icons-react";

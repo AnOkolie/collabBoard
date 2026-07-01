@@ -4,12 +4,10 @@ import { findUserBody } from "../../types/user";
 import { useAuthStore } from "../../zustand/authStore/useAuthStore";
 import { useSocket } from "../../context/SocketContext";
 import { useEffect } from "react";
-import { displayNotifications } from "../../utilities/displayNotifications";
+import { displayNotifications } from "../../utilities/notification/displayNotifications";
 import { useFetcher, useNavigate } from "react-router-dom";
 import { getOrCreateDirectConversation } from "../../services/getOrCreateConversation";
 import { useFriendSocket } from "../../hooks/useFriendSocket";
-import { useSearchUser } from "../../hooks/useSearchUser";
-import { useState } from "react";
 
 type Props = {
   user: findUserBody;
@@ -36,12 +34,10 @@ export const UserSearchButton = ({
     messageType: string,
     response?: "accepted" | "decline",
   ) => {
-    console.log(userId ? "hanlde clisk" : "id is empty");
     if (!userId) return;
     switch (messageType) {
       case "response":
         if (!response) return;
-        console.log(`${response}ing request`);
         respondToFriendRequest(user.sender, response);
         setSearch(search);
         break;

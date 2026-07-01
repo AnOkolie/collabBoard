@@ -4,7 +4,7 @@ import { ENV } from "../utils/env.js";
 const client = createClient({
   url: ENV.REDIS_URL,
 });
-await client.connect();
+export const redis = await client.connect();
 
 export async function publishMessage(channel, message) {
   try {

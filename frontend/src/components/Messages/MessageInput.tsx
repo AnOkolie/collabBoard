@@ -3,11 +3,7 @@ import { IconPaperclip, IconSend } from "@tabler/icons-react";
 import { useRef, useState, useEffect } from "react";
 import { Form } from "react-router-dom";
 import { useConversation } from "../../hooks/useConversation";
-import {
-  conversationMessage,
-  messageBody,
-  UserConversation,
-} from "../../types/messages";
+import { conversationMessage } from "../../types/messages";
 import { useAuthStore } from "../../zustand/authStore/useAuthStore";
 import { useMessage } from "../../hooks/useMessage";
 import { getSupabasePath, uploadFile } from "../../utilities/supabase";
@@ -43,12 +39,7 @@ export const MessageInput = ({ conversation }: messageInputProps) => {
     if (!files) return;
     setFiles((prev) => prev?.filter((f) => f !== file));
   };
-  useEffect(() => {
-    if (files)
-      files.forEach((file) => {
-        console.log(file);
-      });
-  }, [files]);
+
   const { addMessage } = useMessageStore();
 
   const [message, setMessage] = useState("");
@@ -74,15 +65,14 @@ export const MessageInput = ({ conversation }: messageInputProps) => {
     setMessage("");
     setFiles([]);
     addMessage(userMessage);
-
+    sendTyping(false, conversation.id, userId);
     handleSubmit(userMessage, conversation.id);
   };
-  const { handleSubmit } = useMessage();
+  const { handleSubmit, sendTyping } = useMessage();
   const buildAttahments = async () => {
     return Promise.all(
       files.map(async (file) => {
         const url = getSupabasePath(await uploadFile(file));
-        console.log(url);
         return {
           fileName: file.name,
           fileSize: file.size,
@@ -92,6 +82,40 @@ export const MessageInput = ({ conversation }: messageInputProps) => {
       }),
     );
   };
+  const typingRef = useRef(false);
+  const stopTimeout = useRef<NodeJS.Timeout | null>(null);
+  useEffect(() => {
+    if (!message) {
+      return;
+    }
+
+    // 1. send typing start immediately (only once)
+    if (!typingRef.current) {
+      sendTyping(true, conversation.id, userId);
+      typingRef.current = true;
+    }
+
+    // 2. reset stop timer on every keystroke
+    if (stopTimeout.current) {
+      clearTimeout(stopTimeout.current);
+    }
+
+    // 3. debounce stop typing
+    stopTimeout.current = setTimeout(() => {
+      sendTyping(false, conversation.id, userId);
+      typingRef.current = false;
+    }, 1500); // 1–2s is standard
+  }, [message]);
+  useEffect(() => {
+    return () => {
+      if (stopTimeout.current) {
+        clearTimeout(stopTimeout.current);
+      }
+
+      sendTyping(false, conversation.id, userId);
+      typingRef.current = false;
+    };
+  }, []);
 
   const SendButton = () => {
     return (

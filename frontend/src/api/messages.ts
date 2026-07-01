@@ -1,7 +1,8 @@
 import {
   conversationMessage,
   directConversation,
-  messagesResponse,
+  fullConversation,
+  fullConversationTwo,
   UserConversation,
 } from "../types/messages";
 import { RequestMethods, RequestResolve } from "../types/requests";
@@ -29,3 +30,8 @@ export const getDirectConversation = async (
     RequestMethods.GET,
     `conversations/direct/${userId}/search?friend_id=${friendId}`,
   );
+
+export const getGroupConversations = async (
+  boardId: string,
+): Promise<RequestResolve<fullConversationTwo>> =>
+  await request(RequestMethods.GET, `conversations/group/${boardId}`);

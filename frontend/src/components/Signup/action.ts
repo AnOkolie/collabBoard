@@ -10,6 +10,7 @@ export const signupAction = async ({ request }: ActionFunctionArgs) => {
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
   const name = formData.get("name") as string;
+  const { setToken } = useAuthStore.getState();
   if (!email || !password || !name) {
     return { error: "Please fill in all fields" };
   }
@@ -35,7 +36,7 @@ export const signupAction = async ({ request }: ActionFunctionArgs) => {
       profilepic: userData.profilepic,
     });
     if (token) {
-      localStorage.setItem("token", token);
+      setToken(token);
     }
     return response;
   }

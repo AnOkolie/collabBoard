@@ -1,6 +1,7 @@
 import { pool } from "../db/db.js";
 import { broadcastBoard } from "../websockets/boards.js";
 import { prisma } from "../db/prisma.js";
+import { formatGetBoard } from "../transformers/boards.js";
 
 export const getBoard = async (req, res) => {
   const { user_id } = req.params;
@@ -8,18 +9,29 @@ export const getBoard = async (req, res) => {
     return res.status(400).json({ error: "No user id given" });
   }
   try {
-    const result = await pool.query(
-      "SELECT b.id, b.title, b.owner_id, b.created_at, b.updated_at, b.progress, bm.role FROM boards b JOIN board_members bm ON b.id = bm.board_id WHERE bm.user_id = $1 ORDER BY b.updated_at DESC;",
-      [user_id],
-    );
+    const result = await prisma.boards.findMany({
+      where: {
+        board_members: {
+          some: {
+            user_id: {
+              in: [user_id],
+            },
+          },
+        },
+      },
+      include: {
+        conversations: true,
+        board_members: true,
+      },
+    });
 
-    if (result.rows.length === 0) {
+    if (!result) {
       return res.status(200).json({ message: "No boards found for this user" });
     }
 
     return res.status(200).json({
       message: "Board retrieved successfully",
-      board: result.rows,
+      board: formatGetBoard(result),
     });
   } catch (err) {
     return res.status(500).json({ error: err.message });
@@ -35,36 +47,66 @@ export const addBoard = async (req, res) => {
   }
 
   try {
-    await pool.query("BEGIN");
-    const boardResult = await pool.query(
-      "INSERT INTO boards (title, user_id, created_at, owner_id) VALUES ($1, $2, NOW(), $3) RETURNING id",
-      [title, user_id, user_id],
-    );
+    const boardCreation = await prisma.$transaction(async (tx) => {
+      const board = await tx.boards.create({
+        data: {
+          title,
+          user_id,
+          owner_id: user_id,
+        },
+      });
 
-    const board = boardResult.rows[0];
-    const defaults = ["To Do", "In Progress", "Completed"];
+      const defaults = ["To Do", "In Progress", "Completed"];
 
-    for (let i = 0; i < defaults.length; i++) {
-      await pool.query(
-        `INSERT INTO columns (board_id, title)
-         VALUES ($1, $2)`,
-        [board.id, defaults[i]],
-      );
-    }
+      await tx.columns.createMany({
+        data: defaults.map((title) => ({
+          board_id: board.id,
+          title,
+        })),
+      });
 
-    await pool.query(
-      "INSERT INTO board_members (user_id, board_id, role) VALUES ($1,$2,$3)",
-      [user_id, board.id, "owner"],
-    );
+      await tx.board_members.create({
+        data: {
+          board_id: board.id,
+          user_id,
+          role: "owner",
+        },
+      });
 
-    await pool.query("COMMIT");
+      await tx.conversations.create({
+        data: {
+          type: "group",
+          name: title,
+          created_by: user_id,
+          group_id_key: board.id,
+          conversation_members: {
+            create: [
+              {
+                user_id,
+                joined_at: new Date(),
+                role: "owner",
+              },
+            ],
+          },
+        },
+      });
 
+      return tx.boards.findUnique({
+        where: {
+          id: board.id,
+        },
+        include: {
+          columns: true,
+          board_members: true,
+          conversations: true,
+        },
+      });
+    });
     return res.status(201).json({
       message: "Board added successfully",
-      board: board,
+      board: boardCreation,
     });
   } catch (err) {
-    await pool.query("ROLLBACK");
     console.error("Transaction failed:", err);
     return res.status(500).json({ error: "Failed to create board" });
   }
@@ -274,76 +316,79 @@ export const updateBoardInviteState = async (
   }
 
   try {
-    await pool.query("BEGIN");
+    const boardInviteResponse = await prisma.$transaction(async (tx) => {
+      const invite = await tx.board_invitations.updateMany({
+        where: {
+          board_id,
+          invited_user_id: user_id,
+          host_id,
+          status: "pending",
+        },
+        data: {
+          status: state,
+          responded_at: new Date(),
+        },
+      });
 
-    const inviteResult = await pool.query(
-      `
-      UPDATE board_invitations
-      SET status = $1, responded_at = NOW()
-      WHERE board_id = $2
-        AND invited_user_id = $3
-        AND host_id = $4
-        AND status = 'pending'
-      RETURNING *
-      `,
-      [state, board_id, user_id, host_id],
-    );
-
-    if (inviteResult.rows.length === 0) {
-      await pool.query("ROLLBACK");
-      return { error: "Failed to update invite status" };
-    }
-
-    // Only add member if invite was accepted
-    if (state === "accepted") {
-      const memberResult = await pool.query(
-        `
-        INSERT INTO board_members (board_id, user_id, role)
-        VALUES ($1, $2, 'member')
-        ON CONFLICT (board_id, user_id) DO NOTHING
-        RETURNING *
-        `,
-        [board_id, user_id],
-      );
-
-      // Optional: if you expect a fresh insert every time
-      // if (memberResult.rows.length === 0) {
-      //   await pool.query("ROLLBACK");
-      //   return { error: "Failed to update board members" };
-      // }
-    }
-
-    const newBoard = await pool.query(
-      `
-      SELECT
-        b.id,
-        b.title,
-        b.owner_id,
-        b.created_at,
-        b.updated_at,
-        b.progress,
-        bm.role
-      FROM boards b
-      JOIN board_members bm
-        ON b.id = bm.board_id
-      WHERE bm.board_id = $1
-        AND bm.user_id = $2
-      `,
-      [board_id, user_id],
-    );
-
-    await pool.query("COMMIT");
-
-    // accepted -> should return board access
-    if (state === "accepted") {
-      if (newBoard.rows.length === 0) {
-        return { error: "Board does not exist or membership was not created" };
+      if (invite.count === 0) {
+        throw new Error("Failed to update invite status");
       }
-      return newBoard.rows[0];
-    }
+
+      if (state === "accepted") {
+        await tx.board_members.upsert({
+          where: {
+            board_id_user_id: {
+              board_id,
+              user_id,
+            },
+          },
+          create: {
+            board_id,
+            user_id,
+            role: "member",
+          },
+          update: {},
+        });
+        const conversationId = await tx.conversations.findUnique({
+          where: {
+            group_id_key: board_id,
+          },
+          select: {
+            id: true,
+          },
+        });
+        if (conversationId) {
+          await tx.conversation_members.create({
+            data: {
+              conversation_id: conversationId.id,
+              user_id: user_id,
+              role: "member",
+              joined_at: new Date(),
+            },
+          });
+        }
+      }
+      const board = await tx.boards.findUnique({
+        where: {
+          id: board_id,
+        },
+        include: {
+          board_members: {
+            where: {
+              user_id,
+            },
+            select: {
+              role: true,
+            },
+          },
+        },
+      });
+
+      return board;
+    });
 
     // declined/cancelled -> no board membership to return
-    return inviteResult.rows[0];
+    return boardInviteResponse;
   } catch (error) {
     await pool.query("ROLLBACK");
     console.error("Error updating board_invitation DB ", error);

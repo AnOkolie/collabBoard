@@ -3,18 +3,16 @@ import { checkAuthOnLoad } from "../../api/auth";
 import { useAuthStore } from "../../zustand/authStore/useAuthStore";
 
 export const authLoader = async () => {
+  const { token, setAuthUser, setCheckingAuth } = useAuthStore.getState();
+
   try {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      throw new Error("missing token");
-    }
+    if (!token) throw new Error("Missing token");
+
     const res = await checkAuthOnLoad(token);
     const user = res.data?.user;
 
-    useAuthStore.setState({
-      authUser: user ?? null,
-      isCheckingAuth: false,
-    });
+    setAuthUser(user ?? null);
+    setCheckingAuth(false);
 
     if (!user) {
       throw redirect("/login");
@@ -22,11 +20,8 @@ export const authLoader = async () => {
 
     return user;
   } catch {
-    useAuthStore.setState({
-      authUser: null,
-      isCheckingAuth: false,
-    });
-
+    setAuthUser(null);
+    setCheckingAuth(false);
     throw redirect("/login");
   }
 };

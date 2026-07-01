@@ -3,7 +3,8 @@ import { IconBell } from "@tabler/icons-react";
 import { useActivityHook } from "../../hooks/useActivityNotifications";
 import { FriendRequests } from "./FriendRequests";
 import { BoardInvites } from "./BoardInvites";
-
+import { useActivityCentreStore } from "../../zustand/activityCentreStore/useActivityCentreStore";
+import { useState, useEffect } from "react";
 type DisclosureHandlers = {
   open: () => void;
   close: () => void;
@@ -19,10 +20,19 @@ export const ActivityCenter = ({
   notifDrawerHandler,
   notifDrawerOpened,
 }: ActivityCenterProps) => {
-  const { activityNotif, setActivityNotif } = useActivityHook();
-  const notifLength =
-    (activityNotif?.boardInvites?.length ?? 0) +
-    (activityNotif?.friendRequests?.length ?? 0);
+  useActivityHook();
+  const {
+    friendActivity,
+    boardActivity,
+    removeBoardActivity,
+    removeFriendActivity,
+  } = useActivityCentreStore();
+
+  const [notifLength, setNotifLength] = useState(0);
+
+  useEffect(() => {
+    setNotifLength((boardActivity.length ?? 0) + (friendActivity.length ?? 0));
+  }, [notifLength, setNotifLength, boardActivity, friendActivity]);
 
   return (
     <>
@@ -36,12 +46,12 @@ export const ActivityCenter = ({
         size="md"
       >
         <FriendRequests
-          friendRequests={activityNotif?.friendRequests ?? []}
-          setActivityNotif={setActivityNotif}
+          friendRequests={friendActivity}
+          removeFriendRequest={removeFriendActivity}
         />
         <BoardInvites
-          boardInvites={activityNotif?.boardInvites ?? []}
-          setActivityNotif={setActivityNotif}
+          boardInvites={boardActivity}
+          removeBoardInvite={removeBoardActivity}
         />
       </Drawer>
       <Button

@@ -18,11 +18,9 @@ export const useTypedBoardMessage = (lastJsonMessage: any) => {
 };
 
 export const useMessage = () => {
-  const { addMessage } = useMessageStore();
-  const { sendJsonMessage, lastJsonMessage } = useSocket();
+  const { sendJsonMessage } = useSocket();
   const handleSubmit = useCallback(
     (message: messageBody, conversationId: string) => {
-      console.log("handle message sending");
       if (!message || !conversationId) return;
       sendJsonMessage({
         type: "message:sent",
@@ -32,22 +30,23 @@ export const useMessage = () => {
         },
       });
     },
-    [sendJsonMessage, lastJsonMessage],
+    [sendJsonMessage],
   );
-
-  useEffect(() => {
-    if (!lastJsonMessage) return;
-    const { type } = lastJsonMessage;
-    switch (type) {
-      case "message:received":
-        const { payload } = lastJsonMessage;
-        console.log("message received", lastJsonMessage);
-        addMessage(payload);
-        break;
-    }
-  }, [lastJsonMessage]);
-
+  const sendTyping = useCallback(
+    (isTyping: boolean, conversationId: string, senderId?: string) => {
+      if (!senderId) return;
+      sendJsonMessage({
+        type: `typing:${isTyping}`,
+        payload: {
+          conversation_id: conversationId,
+          sender_id: senderId,
+        },
+      });
+    },
+    [sendJsonMessage],
+  );
   return {
     handleSubmit,
+    sendTyping,
   };
 };

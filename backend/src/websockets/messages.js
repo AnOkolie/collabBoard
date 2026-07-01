@@ -1,9 +1,9 @@
+import { getConversationMembers } from "../controllers/conversations.controller.js";
 import { createMessage } from "../controllers/messages.controller.js";
 import { userSocketMap } from "./socket.js";
 
 export const broadcastMessage = async (ws, conversation_id, message) => {
   const { senderId, content, messageType, metadata, attachments } = message;
-  console.log(senderId, conversation_id, content, messageType, attachments);
   const result = await createMessage(
     senderId,
     conversation_id,
@@ -18,10 +18,8 @@ export const broadcastMessage = async (ws, conversation_id, message) => {
         message: result.error,
       }),
     );
-    console.log(result.error);
     return;
   }
-  console.log("data:", result.data);
   const friends = result.data.conversations.conversation_members;
   for (const friend of friends) {
     const friendWs = userSocketMap.get(friend.users.id);
@@ -54,7 +52,8 @@ const formatOutgoingMessage = (result) => {
     content: result.content,
     senderId: result.sender_id,
     messageType: result.message_type,
-    created_at: result.created_at,
+    createdAt: result.created_at,
+    conversationId: result.conversation_id,
     edited_at: result.edited_at,
     users: result.conversations.conversation_members,
     attachments: result.attachments.map((file) => {
@@ -66,6 +65,48 @@ const formatOutgoingMessage = (result) => {
       };
     }),
     messageReactions: result.message_reactions,
+    sender: {
+      username: result.users.username,
+      profilepic: result.users.profilepic,
+    },
   };
   return message;
+};
+
+export const broadcastTypingIcon = async (
+  ws,
+  conversation_id,
+  sender_id,
+  type,
+) => {
+  const typingForm = type.split(":")[1] === "true" ? "start" : "stop";
+  if (!conversation_id || !sender_id) {
+    ws.send(
+      JSON.stringify({
+        type: "typing:error",
+      }),
+    );
+  }
+  try {
+    const result = await getConversationMembers(conversation_id, sender_id);
+    const members = result.data;
+    const users = result.user.users;
+    if (members) {
+      members.map((member) => {
+        const friendWs = userSocketMap.get(member.user_id);
+        if (friendWs && friendWs.readyState === friendWs.OPEN) {
+          friendWs.send(
+            JSON.stringify({
+              type: `typing:${typingForm}`,
+              conversationId: conversation_id,
+              sender_id: sender_id,
+              users: users,
+            }),
+          );
+        }
+      });
+    }
+  } catch (err) {
+    console.error("Error sending typing message", err);
+  }
 };

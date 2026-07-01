@@ -9,3 +9,12 @@ export const formatDate = (dateString: Date) => {
     minute: "2-digit",
   });
 };
+
+export const timeString = (timestamp: string) => {
+  const time = new Date(timestamp).toLocaleTimeString([], {
+    hour: "numeric",
+
+    minute: "2-digit",
+  });
+  return time;
+};

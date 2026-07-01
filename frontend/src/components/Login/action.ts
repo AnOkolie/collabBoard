@@ -8,6 +8,7 @@ export const loginAction = async ({ request }: ActionFunctionArgs) => {
   const email = (formData.get("email") as string) ?? null;
   const password = formData.get("password") as string;
   const username = (formData.get("username") as string) ?? null;
+  const { setToken, setAuthUser, authUser } = useAuthStore.getState();
   if ((!email && !username) || !password) {
     return { error: "Please fill in all fields" };
   }
@@ -19,22 +20,23 @@ export const loginAction = async ({ request }: ActionFunctionArgs) => {
     };
   }
   if (response.data) {
-    const userData = await response.data.user;
+    const userData = response.data.user;
     try {
-      useAuthStore.getState().setAuthUser({
+      setAuthUser({
         id: userData.id,
         email: userData.email,
         username: userData.username,
         profilepic: userData.profilepic,
       });
+
+      if (response.data.token) {
+        const token = response.data.token;
+        setToken(token);
+      }
     } catch (err) {
       console.error("error updating user zustand", err);
     }
 
-    if (response.data.token) {
-      const token = response.data.token;
-      localStorage.setItem("token", token);
-    }
     return response;
   }
 };

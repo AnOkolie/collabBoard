@@ -6,7 +6,7 @@ export default defineConfig({
   schema: "prisma/schema.prisma",
   migrations: {
     path: "prisma/migrations",
-    seed: "prisma/seed.js",
+    seed: "tsx prisma/seed.ts",
   },
   datasource: {
     url: ENV.POSTGRES_URL,

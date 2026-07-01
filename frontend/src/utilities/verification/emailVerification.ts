@@ -1,4 +1,4 @@
-import { displayNotifications } from "../displayNotifications";
+import { displayNotifications } from "../notification/displayNotifications";
 
 //StackOverflow: https://stackoverflow.com/questions/46155/how-can-i-validate-an-email-address-in-javascript
 export const validateEmail = (email: string, display = true): boolean => {

@@ -7,7 +7,7 @@ import { DndContext, DragEndEvent, closestCorners } from "@dnd-kit/core";
 import { ColumnType } from "../../types/columns";
 import { BoardMembers } from "../../types/boards";
 import { moveCard } from "../../api/card";
-import { displayNotifications } from "../../utilities/displayNotifications";
+import { displayNotifications } from "../../utilities/notification/displayNotifications";
 import { useSocket } from "../../context/SocketContext";
 import { useAuthStore } from "../../zustand/authStore/useAuthStore";
 import { useSearchUser } from "../../hooks/useSearchUser";

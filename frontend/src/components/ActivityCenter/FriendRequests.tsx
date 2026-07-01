@@ -14,18 +14,22 @@ type DisclosureHandlers = {
 
 type ActivityCenterProps = {
   friendRequests: FriendRequestStructure[];
-  setActivityNotif: React.Dispatch<React.SetStateAction<ActivityData>>;
+  removeFriendRequest: (friend: FriendRequestStructure) => void;
 };
 
 export const FriendRequests = ({
   friendRequests,
-  setActivityNotif,
+  removeFriendRequest,
 }: ActivityCenterProps) => {
   if (!friendRequests) return null;
   const { sendJsonMessage, lastJsonMessage } = useSocket();
   const userId = useAuthStore((state) => state.authUser?.id);
 
-  const handleClick = (friendId: string, response: "accepted" | "declined") => {
+  const handleClick = (
+    friendId: string,
+    response: "accepted" | "declined",
+    friend: FriendRequestStructure,
+  ) => {
     const myId = useAuthStore.getState().authUser?.id;
     if (!friendId || !response || !myId) return;
     sendJsonMessage({
@@ -34,43 +38,49 @@ export const FriendRequests = ({
       user_id: myId,
       response: response,
     });
-    setActivityNotif((prev) => ({
-      ...prev,
-      friendRequests: (prev.friendRequests ?? []).filter(
-        (friend) => friend.friend_id !== friendId,
-      ),
-    }));
+    removeFriendRequest(friend);
   };
 
   return (
     <>
       <Stack gap="sm">
-        {friendRequests.map((notif) => (
-          <Card key={notif.friend_id} withBorder radius="md" p="sm" shadow="xs">
-            <Stack gap={6}>
-              <Text size="sm">{`${notif.requester.username} wants to be your friend`}</Text>
+        {friendRequests.length > 0 &&
+          friendRequests.map((notif) => (
+            <Card
+              key={notif.friend_id}
+              withBorder
+              radius="md"
+              p="sm"
+              shadow="xs"
+            >
+              <Stack gap={6}>
+                <Text size="sm">{`${notif.requester.username} wants to be your friend`}</Text>
 
-              <Flex justify="flex-end" gap="xs">
-                <Button
-                  size="xs"
-                  color="green"
-                  onClick={() => handleClick(notif.friend_id, "accepted")}
-                >
-                  Accept
-                </Button>
+                <Flex justify="flex-end" gap="xs">
+                  <Button
+                    size="xs"
+                    color="green"
+                    onClick={() =>
+                      handleClick(notif.friend_id, "accepted", notif)
+                    }
+                  >
+                    Accept
+                  </Button>
 
-                <Button
-                  size="xs"
-                  variant="light"
-                  color="red"
-                  onClick={() => handleClick(notif.friend_id, "declined")}
-                >
-                  Decline
-                </Button>
-              </Flex>
-            </Stack>
-          </Card>
-        ))}
+                  <Button
+                    size="xs"
+                    variant="light"
+                    color="red"
+                    onClick={() =>
+                      handleClick(notif.friend_id, "declined", notif)
+                    }
+                  >
+                    Decline
+                  </Button>
+                </Flex>
+              </Stack>
+            </Card>
+          ))}
       </Stack>
     </>
   );

@@ -11,7 +11,7 @@ export const friendRequest = async (user_id, friend_id, ws) => {
     console.error("Missing required fields");
     ws.send(
       JSON.stringify({
-        type: "error",
+        type: "friends:error",
         message: "Friend request failed to send",
       }),
     );
@@ -21,14 +21,12 @@ export const friendRequest = async (user_id, friend_id, ws) => {
     console.error("Error updating friendships");
     ws.send(
       JSON.stringify({
-        type: "error",
+        type: "friends:error",
         message: "Friend request failed to send",
       }),
     );
   }
-  console.log(
-    `received request from user_id: ${user_id} and friend_id: ${friend_id}`,
-  );
+
   const friendSocket = userSocketMap.get(friend_id);
   if (friendSocket) {
     friendSocket.send(
@@ -42,13 +40,11 @@ export const friendRequest = async (user_id, friend_id, ws) => {
 };
 
 export const friendRequestUpdate = async (user_id, friend_id, ws, status) => {
-  console.log("status", status);
   if (!friend_id || !user_id) {
     console.error("Missing required fields");
-    console.log(`user: ${user_id} and friend: ${friend_id}`);
     ws.send(
       JSON.stringify({
-        type: "error",
+        type: "friends:error",
         message: "Friend request failed to send",
       }),
     );
@@ -70,7 +66,7 @@ const handleRejectFriendship = async (user_id, friend_id, ws) => {
     console.error("Error updating friendships");
     ws.send(
       JSON.stringify({
-        type: "error",
+        type: "friends:error",
         message: "Friend request failed to send",
       }),
     );
@@ -92,7 +88,7 @@ const handleFriendshipUpdate = async (user_id, friend_id, ws, status) => {
   if (response.error) {
     ws.send(
       JSON.stringify({
-        type: "error",
+        type: "friends:error",
         message: "Friend request failed to send",
       }),
     );

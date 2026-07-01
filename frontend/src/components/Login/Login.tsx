@@ -14,7 +14,7 @@ import { IconLayoutKanban } from "@tabler/icons-react";
 import { useLocation, useSubmit } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { Form, Link, useActionData } from "react-router-dom";
-import { displayNotifications } from "../../utilities/displayNotifications";
+import { displayNotifications } from "../../utilities/notification/displayNotifications";
 import { useNavigate } from "react-router-dom";
 import { WELCOME_TEXT } from "../../constants/string";
 import { AuthLayout } from "../AuthLayout/AuthLayout";

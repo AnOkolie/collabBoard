@@ -128,4 +128,18 @@ export type OutgoingMessage =
         recipient_id: string[];
         type: string;
       };
+    }
+  | {
+      type: "typing:true";
+      payload: {
+        conversation_id: string;
+        sender_id: string;
+      };
+    }
+  | {
+      type: "typing:false";
+      payload: {
+        conversation_id: string;
+        sender_id: string;
+      };
     };

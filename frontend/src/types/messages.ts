@@ -38,6 +38,13 @@ export type fullConversation = {
   activityStatus: "online" | "offline";
 };
 
+export type fullConversationTwo = {
+  data: {
+    messages: {
+      data: fullConversation;
+    };
+  };
+};
 export type conversationMessage = {
   id: string;
   conversationMembers: {
@@ -79,20 +86,6 @@ export type attachmentBody = {
   deleted_at?: string;
 };
 
-export type messagesResponse = {
-  id: string;
-  conversationId: string;
-  senderId: string;
-  content: string;
-  messageType: string[];
-  createdAt: Date;
-  editedAt: Date;
-  deletedAt: Date;
-  attachments: attachments;
-  conversation_reads: conversation_reads;
-  messageReactions: message_reactions;
-};
-
 type attachments = {
   id: string;
   messageId: string;
@@ -129,7 +122,8 @@ export type fullMessageResponse = {
   content: string;
   senderId: string;
   messageType: string;
-  createdAt?: string;
+  conversationId: string;
+  createdAt: string;
   editedAt?: string;
   deletedAt?: string;
   users: conversationUsersBody;
@@ -139,4 +133,22 @@ export type fullMessageResponse = {
     reaction: string;
     createdAt: string;
   }[];
+  sender: {
+    username: string;
+    profilepic: string;
+  };
+};
+
+export type messagesResponse = {
+  id: string;
+  conversationId: string;
+  senderId: string;
+  content: string;
+  messageType: string[];
+  createdAt: Date;
+  editedAt: Date;
+  deletedAt: Date;
+  attachments: attachments;
+  conversation_reads: conversation_reads;
+  messageReactions: message_reactions;
 };

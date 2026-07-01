@@ -7,6 +7,10 @@ interface AuthState {
   isCheckingAuth: boolean;
   hasHydrated: boolean;
   setAuthUser: (user: userObject | null) => void;
+  token: string;
+  setToken: (token: string) => void;
+  deleteToken: () => void;
+  setCheckingAuth: (status: boolean) => void;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -15,7 +19,10 @@ export const useAuthStore = create<AuthState>()(
       authUser: null,
       isCheckingAuth: false,
       hasHydrated: false,
-
+      token: "",
+      setToken: (token) => set(() => ({ token: token })),
+      deleteToken: () => set(() => ({ token: "" })),
+      setCheckingAuth: (state) => set(() => ({ isCheckingAuth: state })),
       setAuthUser: (user) => set({ authUser: user }),
     }),
     {

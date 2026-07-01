@@ -1,10 +1,13 @@
 // useFriendRequestNotifications.ts
 import { useEffect } from "react";
 import { Button, Group } from "@mantine/core";
-import { displayNotifications } from "../utilities/displayNotifications";
+import { displayNotifications } from "../utilities/notification/displayNotifications";
 import { IncomingBoardEvent } from "../types/socket/incomingMessages";
 import { useFriendSocket } from "./useFriendSocket";
 
+type prop = {
+  onClickHandler: (response: string, id?: string) => void;
+};
 export const useFriendRequestNotifications = (
   message: IncomingBoardEvent | null,
 ) => {
@@ -30,7 +33,7 @@ export const useFriendRequestNotifications = (
             <Button
               size="xs"
               variant="outline"
-              onClick={() => respondToFriendRequest(user_id, "declined")}
+              onClick={() => respondToFriendRequest(user_id, "decline")}
             >
               Decline
             </Button>
@@ -45,7 +48,7 @@ export const useFriendRequestNotifications = (
         displayNotifications("Accepted", message.message, "green");
         break;
 
-      case "error":
+      case "friends:error":
         displayNotifications("Friend Request", message.message, "red");
         break;
     }

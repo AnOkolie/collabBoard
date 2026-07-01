@@ -93,7 +93,6 @@ export const getFriendRequestReceived = async (req, res) => {
 };
 
 export const rejectFriendship = async (user_id, friend_id) => {
-  console.log("rejecting friendship...");
   if (!user_id || !friend_id) {
     return { error: "Required fields are missing" };
   }
@@ -232,7 +231,6 @@ export const getAllFriends = async (req, res) => {
       ...friends.friendshipRequestsReceived,
       ...friends.friendshipRequestsSent,
     ];
-    console.log(friends.friendsReceived);
 
     return res.status(200).json({
       message: "User friendships",

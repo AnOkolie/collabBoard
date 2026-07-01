@@ -1,7 +1,7 @@
 import { useMemo, useRef, useEffect } from "react";
 import { IncomingBoardEvent } from "../types/socket/incomingMessages";
 import { useAuthStore } from "../zustand/authStore/useAuthStore";
-import { displayNotifications } from "../utilities/displayNotifications";
+import { displayNotifications } from "../utilities/notification/displayNotifications";
 import { Box, Button, Group } from "@mantine/core";
 
 export const useTypedBoardMessage = (lastJsonMessage: any) => {
@@ -74,7 +74,7 @@ export const useBoardInviteHandler = (
         displayNotifications("Accepted", message.message, "green");
         break;
 
-      case "error":
+      case "boards:error":
         displayNotifications("Board Invitation", message.message, "red");
         break;
     }

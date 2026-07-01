@@ -26,6 +26,8 @@ import { useSocket } from "../../context/SocketContext";
 import { useEffect } from "react";
 import { OnlineUsers } from "../../types/user";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useBoardStore } from "../../zustand/useBoardStore/useBoardStore";
 type BoardHeaderProps = {
   onOpenMembers: () => void;
   onOpenCreateColumn: () => void;
@@ -37,6 +39,12 @@ export const BoardHeader = ({
 }: BoardHeaderProps) => {
   const [onlineUsers, setOnlineUsers] = useState<OnlineUsers[]>([]);
   const { lastJsonMessage } = useSocket();
+  const { boardId } = useBoardStore();
+  const navigate = useNavigate();
+  const navigateToConversation = (boardId: string) => {
+    if (!boardId) return;
+    navigate(`/messages/${boardId}`);
+  };
   useEffect(() => {
     if (!lastJsonMessage) return;
     const { type } = lastJsonMessage;
@@ -113,7 +121,7 @@ export const BoardHeader = ({
           <Button
             variant="default"
             leftSection={<IconMessage size={16} />}
-            onClick={onOpenMembers}
+            onClick={() => navigateToConversation(boardId)}
           >
             Channel
           </Button>

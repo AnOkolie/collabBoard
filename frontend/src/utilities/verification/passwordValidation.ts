@@ -1,4 +1,4 @@
-import { displayNotifications } from "../displayNotifications";
+import { displayNotifications } from "../notification/displayNotifications";
 
 export const equalPasswords = (
   password1: string,

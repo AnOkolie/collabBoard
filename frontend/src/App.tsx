@@ -16,7 +16,7 @@ import { columnAction } from "./components/Columns/action";
 import { loginAction } from "./components/Login/action";
 import { signupAction } from "./components/Signup/action";
 import { userProfileAction } from "./components/UserProfile/action";
-import { navbarAction } from "./components/Navbar/action";
+import { logoutAction } from "./components/Navbar/action";
 import { authLoader } from "./components/Navbar/loader";
 import { ModalsProvider } from "@mantine/modals";
 import { Notifications } from "@mantine/notifications";
@@ -34,6 +34,7 @@ import { ChannelList } from "./components/Messages/ChannelList";
 import { EmptyConversation } from "./components/Messages/EmptyConversation";
 import { Friends } from "./components/Friends/Friends";
 import { friendLoader } from "./components/Friends/loader";
+import { groupMessagesLoader } from "./components/Messages/groupMessagesLoader";
 
 const router = createBrowserRouter([
   {
@@ -51,6 +52,7 @@ const router = createBrowserRouter([
   {
     path: "/",
     loader: authLoader,
+    action: logoutAction,
     element: <ProtectedLayout />,
     errorElement: <ErrorBoundary />,
     shouldRevalidate: () => false,
@@ -96,6 +98,11 @@ const router = createBrowserRouter([
             element: <EmptyConversation />,
           },
           {
+            path: ":boardId",
+            element: <Message />,
+            loader: groupMessagesLoader,
+          },
+          {
             path: ":userId/:conversationId",
             element: <Message />,
             loader: messagesLoader,
@@ -109,7 +116,7 @@ const router = createBrowserRouter([
       },
       {
         path: "logout",
-        action: navbarAction,
+        action: logoutAction,
       },
     ],
   },

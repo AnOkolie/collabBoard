@@ -4,6 +4,8 @@ import jwt from "jsonwebtoken";
 import { ENV } from "../utils/env.js";
 import { prisma } from "../db/prisma.js";
 import { generateAccessToken, generateRefreshToken } from "../utils/token.js";
+import { redis } from "../db/redis.js";
+import { COOKIE_PATH } from "../utils/strings.js";
 
 export const login = async (req, res) => {
   const { email, password: userPassword, username } = req.body;
@@ -62,7 +64,7 @@ export const register = async (req, res) => {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
-      path: "/api/auth/refresh",
+      path: COOKIE_PATH,
     });
     //for cross site cookies, sameSite needs to be turned off
 
@@ -111,9 +113,21 @@ export const checkAuth = async (req, res) => {
   }
 };
 
-export const logout = (req, res) => {
+export const logout = async (req, res) => {
+  const refreshToken = req.cookies.refreshToken;
+
   res.clearCookie("token");
-  res.status(200).json({ message: "Logged out successfully" });
+  try {
+    const payload = jwt.verify(refreshToken, ENV.REFRESH_SECRET);
+    const ttl = payload.exp - Math.floor(Date.now() / 1000);
+    await redis.set(`revoked:${payload.jti}`, "true", {
+      EX: ttl,
+    });
+    return res.status(200).json({ message: "Logged out successfully" });
+  } catch (err) {
+    console.error("Error logging out", err);
+    return res.status(500).json({ error: "Internal server error" });
+  }
 };
 
 export const validUsername = async (req, res) => {
@@ -139,10 +153,18 @@ export const validUsername = async (req, res) => {
   }
 };
 
-export const refreshToken = (req, res) => {
+export const refreshToken = async (req, res) => {
   const token = req.cookies.refreshToken;
   if (!token) {
     return res.status(401).json({ message: "Unauthorized" });
+  }
+  const payload = jwt.verify(token, ENV.REFRESH_SECRET);
+  const revoked = await redis.get(`revoked:${payload.jti}`);
+
+  if (revoked) {
+    return res.status(401).json({
+      error: "Refresh token revoked",
+    });
   }
   try {
     jwt.verify(token, ENV.REFRESH_SECRET, (err, user) => {
@@ -193,6 +215,7 @@ const emailLogin = async (email, userPassword, req, res) => {
       secure: process.env.NODE_ENV === "production",
       sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
       maxAge: 2 * 60 * 60 * 1000,
+      path: COOKIE_PATH,
     });
     const { password, ...userWithoutPassword } = user;
     res.status(200).json({
@@ -241,6 +264,7 @@ const usernameLogin = async (username, userPassword, req, res) => {
       secure: process.env.NODE_ENV === "production",
       sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
       maxAge: 2 * 60 * 60 * 1000,
+      path: COOKIE_PATH,
     });
     const { password, ...userWithoutPassword } = user;
     res.status(200).json({
@@ -282,7 +306,6 @@ export const verifyToken = async (req, res) => {
       email: result.email,
       profilepic: result.profilepic,
     };
-    console.log("user", user);
     return res.status(200).json({ user });
   } catch (err) {
     console.error("Error authenticatiing user", err);

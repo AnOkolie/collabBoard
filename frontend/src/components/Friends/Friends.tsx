@@ -29,7 +29,6 @@ export const Friends = () => {
   const { sendFriendRequest } = useFriendSocket();
   useEffect(() => {
     if (!loaderData) return;
-    console.log(loaderData);
     setFriends(loaderData.friends);
   }, [loaderData]);
 

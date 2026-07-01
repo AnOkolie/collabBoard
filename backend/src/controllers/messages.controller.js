@@ -1,7 +1,7 @@
 import { prisma } from "../db/prisma.js";
 export const getMessagesById = async (req, res) => {
   const { conversation_id, user_id } = req.params;
-  console.log(user_id);
+
   try {
     const conversation = await prisma.conversations.findUnique({
       where: {
@@ -189,8 +189,23 @@ export const createMessage = async (
   content,
   message_type,
   attachments,
+  board_id,
 ) => {
+  if (!conversation_id && !board_id) {
+    return { error: "Missing required fields" };
+  }
   try {
+    if (!conversation_id && board_id) {
+      const convo = await prisma.boards.findUnique({
+        where: {
+          id: board_id,
+        },
+        select: {
+          conversation_id: true,
+        },
+      });
+      conversation_id = convo.conversation_id;
+    }
     const membership = await prisma.conversation_members.findUnique({
       where: {
         conversation_id_user_id: {
@@ -200,7 +215,7 @@ export const createMessage = async (
       },
     });
 
-    if (!membership) {
+    if (!membership && message_type === "user") {
       return { error: "Cant send message" };
     }
 
@@ -244,6 +259,13 @@ export const createMessage = async (
               created_by: true,
             },
           },
+          users: {
+            select: {
+              username: true,
+              profilepic: true,
+            },
+          },
+          created_at: true,
           edited_at: true,
           deleted_at: true,
           message_reactions: true,
@@ -268,7 +290,6 @@ export const createMessage = async (
       });
       return created;
     });
-
     return {
       data: message,
     };

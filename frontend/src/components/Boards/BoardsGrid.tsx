@@ -12,6 +12,8 @@ import {
 import { IconAdjustmentsHorizontal, IconDots } from "@tabler/icons-react";
 import { BoardType } from "../../types/boards";
 import { CREATE_BOARD_HEADER, PROJECTS_TEXT } from "../../constants/string";
+import { useBoardStore } from "../../zustand/useBoardStore/useBoardStore";
+import { useMessageStore } from "../../zustand/messageStore/useMessageStore";
 
 type BoardsGridProps = {
   rows: BoardType[];
@@ -43,6 +45,8 @@ export const BoardsGrid = ({
   onOpenBoard,
   onOpenBoardActions,
 }: BoardsGridProps) => {
+  const { setBoardId } = useBoardStore();
+  const { setCurrentConversation } = useMessageStore();
   return (
     <Paper withBorder radius="md" p="md">
       <Flex justify="space-between" align="center" p="lg" mb="md">
@@ -79,7 +83,11 @@ export const BoardsGrid = ({
                 radius="lg"
                 p="md"
                 style={{ cursor: "pointer" }}
-                onClick={() => onOpenBoard(`/board/${row.id}`)}
+                onClick={() => {
+                  setBoardId(row.id);
+                  setCurrentConversation(row.conversationId);
+                  onOpenBoard(`/board/${row.id}`);
+                }}
               >
                 <Flex justify="space-between" align="center" mb="sm">
                   <Pill color={colorMatch[row.title]?.toLowerCase() || "gray"}>

@@ -9,6 +9,8 @@ export type BoardType = {
   user_id: string;
   progress: number;
   createdAt: Date;
+  ownerId: string;
+  conversationId: string;
 };
 
 export type BoardCreateRequest = {

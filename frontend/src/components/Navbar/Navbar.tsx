@@ -38,6 +38,7 @@ export function Navbar() {
   const [opened, { toggle }] = useDisclosure();
   const [notifDrawerOpened, notifDrawerHandler] = useDisclosure();
   const [preview, setPreview] = useState<string | null>(profilepic || null);
+  const { deleteToken } = useAuthStore();
 
   return (
     <>
@@ -139,13 +140,16 @@ export function Navbar() {
               leftSection={<IconSettings size={30} />}
             />
 
-            <Form method="post">
-              <NavLink
-                label={opened ? "Logout" : ""}
+            <Form method="post" action="/logout">
+              <Button
+                type="submit"
+                variant="subtle"
                 leftSection={<IconLogout size={30} />}
-                onClick={() => localStorage.removeItem("token")}
-                href="/login"
-              />
+                fullWidth
+                justify="flex-start"
+              >
+                {opened && "Logout"}
+              </Button>
             </Form>
             <SocketStatusBadge />
           </AppShell.Section>

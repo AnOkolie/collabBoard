@@ -7,7 +7,6 @@ type ChatHeaderProps = {
 };
 
 export const ChatHeader = ({ displayPicture, name }: ChatHeaderProps) => {
-  // console.log("conversations", conversations);
   return (
     <Flex justify="space-between" align="center" px="md" h="100%">
       <Group gap="sm">

@@ -37,6 +37,7 @@ import { useFriendSocket } from "../../hooks/useFriendSocket";
 import { UserSearchButton } from "../SearchUser/UserSearchButton";
 import { Outlet, useLoaderData, useNavigate } from "react-router-dom";
 import { getMessages } from "../../services/getMessages";
+import { useMessageStore } from "../../zustand/messageStore/useMessageStore";
 
 type searchModalProps = {
   opened: boolean;
@@ -46,15 +47,12 @@ type searchModalProps = {
 const UserSearchModal = ({ opened, setOpened }: searchModalProps) => {
   const { searchName, setSearchName, usersByName, isLoading } =
     useSearchUser(800);
-  // const [filteredNames, setFilteredNames] = useState(usersByName);
 
   const currId = useAuthStore.getState().authUser!.id ?? null;
 
   const filteredNames = usersByName.filter((user) => user.id !== currId);
   const { sendFriendRequest } = useFriendSocket();
-  // useEffect(() => {
-  //   setFilteredNames((prev) => prev.filter((user) => user.id !== currId));
-  // }, [usersByName]);
+
   return (
     <>
       <Grid>
@@ -139,6 +137,7 @@ export const ChannelList = () => {
   };
 
   const navigate = useNavigate();
+  const { setCurrentConversation } = useMessageStore();
 
   return (
     <AppShell padding={0}>
@@ -171,6 +170,7 @@ export const ChannelList = () => {
                       key={channel.id}
                       onClick={() => {
                         setTargetConversation(channel);
+                        setCurrentConversation(channel.id);
                         navigate(`${userId}/${channel.id}`);
                       }}
                       px="sm"

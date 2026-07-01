@@ -25,20 +25,38 @@ import {
   friendRequestUpdate,
   dropFriendRequest,
 } from "./friends.js";
-import { broadcastMessage } from "./messages.js";
+import { broadcastMessage, broadcastTypingIcon } from "./messages.js";
 
 const userSocketMap = new Map();
 
 export const wss = new WebSocketServer({ noServer: true });
 
+const heartbeat = (ws) => {
+  ws.isAlive = true;
+};
+
 export const webSocketSetup = () => {
   wss.on("connection", (ws, req) => {
     console.log("ws object", ws.user);
+    ws.isAlive = true;
     if (ws.user?.id) {
       userSocketMap.set(ws.user.id, ws);
       publishPresenceUpdate({ user: ws.user, status: "online" });
     }
     ws.boards = new Set();
+    ws.on("pong", () => {
+      console.log("ponging");
+      ws.isAlive = true;
+    });
+
+    const interval = setInterval(() => {
+      if (ws.isAlive === false) {
+        return ws.terminate(); // Kill broken connection
+      }
+
+      ws.isAlive = false;
+      ws.ping(); // Send ping frame
+    }, 30000);
 
     ws.on("message", async (message) => {
       try {
@@ -69,6 +87,14 @@ export const webSocketSetup = () => {
         } else if (type === "friend-request:unsend") {
           const { user_id, friend_id } = data;
           dropFriendRequest(user_id, friend_id, ws);
+        } else if (type.startsWith("typing")) {
+          const { payload } = data;
+          broadcastTypingIcon(
+            ws,
+            payload.conversation_id,
+            payload.sender_id,
+            type,
+          );
         }
       } catch (err) {
         console.log("Message err: ", err);
@@ -76,6 +102,7 @@ export const webSocketSetup = () => {
     });
 
     ws.on("close", async () => {
+      clearInterval(interval);
       closeSocket(ws);
     });
 

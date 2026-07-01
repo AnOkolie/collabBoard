@@ -30,41 +30,41 @@ export const Message = () => {
 
   useEffect(() => {
     if (!loaderData) return;
-    console.log("loader data messages", loaderData.data.messages.data);
-    // setChannel(loaderData.data.conversations);
+
     setMessages(loaderData.data.messages.data);
   }, [loaderData]);
-  useEffect(() => {
-    console.log("channel", channel);
-    console.log("message", message);
-  }, [channel, message]);
   return (
     <>
-      {!message && <EmptyConversation />}
-      {/* MAIN CHAT */}
-      <Flex direction="column" style={{ flex: 1 }}>
-        {/* HEADER */}
-        <Box h={60} bd="1px solid var(--mantine-color-default-border)">
-          <ChatHeader
-            name={message?.name!}
-            displayPicture={message?.displayPicture!}
-          />
-        </Box>
-        {/* MESSAGES */}
-        <ScrollArea
-          style={{
-            flex: 1,
-          }}
-          bg="gray.0"
-        >
-          <MessageList messages={message!} />
-        </ScrollArea>
+      {!message ? (
+        <EmptyConversation />
+      ) : (
+        <>
+          {/* MAIN CHAT */}
+          <Flex direction="column" style={{ flex: 1 }}>
+            {/* HEADER */}
+            <Box h={60} bd="1px solid var(--mantine-color-default-border)">
+              <ChatHeader
+                name={message?.name!}
+                displayPicture={message?.displayPicture!}
+              />
+            </Box>
+            {/* MESSAGES */}
+            <ScrollArea
+              style={{
+                flex: 1,
+              }}
+              bg="gray.0"
+            >
+              <MessageList messages={message!} />
+            </ScrollArea>
 
-        {/* INPUT */}
-        <Box p="sm" bd="1px solid var(--mantine-color-default-border)">
-          <MessageInput conversation={loaderData.data.messages.data} />
-        </Box>
-      </Flex>
+            {/* INPUT */}
+            <Box p="sm" bd="1px solid var(--mantine-color-default-border)">
+              <MessageInput conversation={loaderData.data.messages.data} />
+            </Box>
+          </Flex>
+        </>
+      )}
     </>
   );
 };

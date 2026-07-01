@@ -35,7 +35,6 @@ export const getSupabasePath = (path: string) => {
 };
 
 export const downloadFile = async (filePath: string, fileName: string) => {
-  console.log(filePath);
   const updatedPath = filePath.split(BUCKET_NAME)[1];
   try {
     const { data, error } = await supabase.storage

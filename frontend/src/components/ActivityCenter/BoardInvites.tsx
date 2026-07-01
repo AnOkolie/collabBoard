@@ -12,12 +12,12 @@ type DisclosureHandlers = {
 
 type ActivityCenterProps = {
   boardInvites: BoardInvitesStructure[];
-  setActivityNotif: React.Dispatch<React.SetStateAction<ActivityData>>;
+  removeBoardInvite: (invite: BoardInvitesStructure) => void;
 };
 
 export const BoardInvites = ({
   boardInvites,
-  setActivityNotif,
+  removeBoardInvite,
 }: ActivityCenterProps) => {
   if (!boardInvites) return null;
   const { sendJsonMessage } = useSocket();
@@ -27,6 +27,7 @@ export const BoardInvites = ({
     board_id: string,
     host_id: string,
     response: "accepted" | "declined",
+    invite: BoardInvitesStructure,
   ) => {
     const myId = useAuthStore.getState().authUser?.id;
     if (!board_id || !host_id || !myId) return;
@@ -37,12 +38,7 @@ export const BoardInvites = ({
       host_id: host_id,
       response: response,
     });
-    setActivityNotif((prev) => ({
-      prev,
-      boardInvites: (prev.boardInvites ?? []).filter(
-        (board) => board.board_id !== board_id,
-      ),
-    }));
+    removeBoardInvite(invite);
   };
 
   return (
@@ -59,7 +55,12 @@ export const BoardInvites = ({
                     size="xs"
                     color="green"
                     onClick={() =>
-                      handleClick(notif.board_id, notif.host_id, "accepted")
+                      handleClick(
+                        notif.board_id,
+                        notif.host_id,
+                        "accepted",
+                        notif,
+                      )
                     }
                   >
                     Accept
@@ -70,7 +71,12 @@ export const BoardInvites = ({
                     variant="light"
                     color="red"
                     onClick={() =>
-                      handleClick(notif.board_id, notif.host_id, "declined")
+                      handleClick(
+                        notif.board_id,
+                        notif.host_id,
+                        "declined",
+                        notif,
+                      )
                     }
                   >
                     Decline

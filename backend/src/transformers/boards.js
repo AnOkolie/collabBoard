@@ -1,4 +1,5 @@
 export const formatGetBoard = (boards) => {
+  if (!boards) return;
   const boardList = boards.map((board) => {
     return {
       id: board.id,

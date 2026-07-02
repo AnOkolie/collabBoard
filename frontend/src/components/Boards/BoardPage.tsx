@@ -81,7 +81,7 @@ export const BoardPage = () => {
 
   useEffect(() => {
     if (!loaderData) return;
-    setRows(loaderData.boards.board ?? []);
+    setRows(loaderData.boards?.board ?? []);
   }, [loaderData]);
   useEffect(() => {
     if (

@@ -33,7 +33,6 @@ export const getTaskDetails = async (req, res) => {
         },
       },
     });
-    // console.log("events structure", events[0].columns[0].cards);
     return res.status(200).json({ data: formatDueDatesResponse(events) });
   } catch (err) {
     console.log("error getting user events", err);

@@ -45,7 +45,6 @@ export const webSocketSetup = () => {
     }
     ws.boards = new Set();
     ws.on("pong", () => {
-      console.log("ponging");
       ws.isAlive = true;
     });
 

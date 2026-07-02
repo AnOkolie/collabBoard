@@ -19,7 +19,6 @@ export const conversationLoader = async ({
   try {
     if (!id) throw new Error("No id given");
     const userConversations = await getConversations(id);
-    console.log("conversation:", userConversations);
     return {
       data: {
         conversations: userConversations.data ?? [],

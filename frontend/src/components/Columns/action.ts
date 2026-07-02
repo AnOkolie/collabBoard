@@ -4,7 +4,6 @@ import { createCard } from "../../api/card";
 export const columnAction = async ({ request }: { request: Request }) => {
   const formData = await request.formData();
   const intent = formData.get("intent");
-  console.log("sending...", formData.get("due-date"));
   switch (intent) {
     case "add-column":
       return await addBoard(

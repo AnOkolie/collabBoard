@@ -23,10 +23,7 @@ export const CalendarPage = ({ onSelectSlot }: props) => {
         resource: task,
       })),
   );
-  useEffect(() => {
-    if (!loaderData) return;
-    console.log("data", loaderData.data);
-  });
+
   return (
     <div style={{ height: "800px" }}>
       <Calendar

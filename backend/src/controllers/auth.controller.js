@@ -154,6 +154,7 @@ export const validUsername = async (req, res) => {
 };
 
 export const refreshToken = async (req, res) => {
+  console.log("refreshing..");
   const token = req.cookies.refreshToken;
   if (!token) {
     return res.status(401).json({ message: "Unauthorized" });

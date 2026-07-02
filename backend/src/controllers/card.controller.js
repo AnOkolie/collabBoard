@@ -1,27 +1,47 @@
 import { pool } from "../db/db.js";
 import { broadcastBoard } from "../websockets/boards.js";
-
+import { prisma } from "../db/prisma.js";
 export const addCards = async (req, res) => {
-  const { content: content, title: title, board_id: boardId } = req.body;
+  const {
+    content: content,
+    title: title,
+    board_id: boardId,
+    due_date: due_date,
+  } = req.body;
   const { column_id: column_id } = req.params;
   try {
-    await pool.query("BEGIN");
-    const result = await pool.query(
-      "INSERT INTO cards (content, column_id, title) VALUES ($1, $2, $3) RETURNING *",
-      [content, column_id, title],
-    );
+    const addCard = await prisma.$transaction(async (tx) => {
+      const card = await tx.cards.create({
+        data: { content, column_id, title, due_date },
+        select: {
+          content: true,
+          id: true,
+          column_id: true,
+          title: true,
+          created_at: true,
+          state: true,
+          due_date: true,
+        },
+      });
+
+      await tx.boards.update({
+        where: { id: boardId },
+        data: { updated_at: new Date() },
+      });
+
+      return card;
+    });
     await updateBoardProgress(boardId);
     const message = {
       type: "card:created",
       payload: {
         boardId: boardId,
         columnId: column_id,
-        card: result.rows[0],
+        card: addCard,
       },
     };
     broadcastBoard(boardId, message);
-    res.json({ message: "Card added successfully", card: result.rows[0] });
-    await pool.query("COMMIT");
+    res.json({ message: "Card added successfully", card: addCard });
   } catch (error) {
     console.error("Error adding card:", error);
     await pool.query("ROLLBACK");

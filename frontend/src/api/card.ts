@@ -8,6 +8,7 @@ export const createCard = async (
   columnId: string,
   cardContent: string,
   boardId: string,
+  dueDate: string,
 ): Promise<RequestResolve<addCardBody>> =>
   await request(
     RequestMethods.POST,
@@ -17,6 +18,7 @@ export const createCard = async (
       title: cardTitle,
       content: cardContent,
       board_id: boardId,
+      due_date: dueDate,
     }),
   );
 

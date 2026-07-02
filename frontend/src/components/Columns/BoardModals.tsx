@@ -7,6 +7,7 @@ import {
   Text,
   TextInput,
   Title,
+  Group,
 } from "@mantine/core";
 import { Form } from "react-router-dom";
 import { formatDate } from "../../utilities/format";
@@ -21,6 +22,8 @@ import {
 import { MembersModal } from "./MembersModal";
 import { useState } from "react";
 import { useAuthStore } from "../../zustand/authStore/useAuthStore";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 
 type CardType = ColumnType["cards"][number];
 
@@ -69,6 +72,7 @@ export const BoardModals = ({
 }: BoardModalsProps) => {
   const [titleText, setTitleText] = useState("");
   const userId = useAuthStore.getState().authUser?.id;
+  const [startDate, setStartDate] = useState(new Date());
   return (
     <>
       <Modal
@@ -127,6 +131,24 @@ export const BoardModals = ({
             name="cardContent"
             mt="md"
           />
+          <Group m={"md"}>
+            <Text>Task Due date</Text>
+            <DatePicker
+              name="due-date"
+              selected={startDate}
+              onChange={(date: Date | null) => {
+                if (date) setStartDate(date);
+              }}
+              showTimeSelect
+              timeFormat="HH:mm"
+              dateFormat="MMMM d, yyyy h:mm aa"
+              minDate={new Date()}
+              filterDate={(date: Date) =>
+                date.getDay() !== 0 && date.getDay() !== 6
+              }
+            />
+          </Group>
+
           <Flex justify="flex-end" mt="md" gap="md">
             <Button
               onClick={createCardHandlers.close}

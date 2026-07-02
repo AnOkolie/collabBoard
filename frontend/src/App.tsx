@@ -35,6 +35,8 @@ import { EmptyConversation } from "./components/Messages/EmptyConversation";
 import { Friends } from "./components/Friends/Friends";
 import { friendLoader } from "./components/Friends/loader";
 import { groupMessagesLoader } from "./components/Messages/groupMessagesLoader";
+import { CalendarPage } from "./components/Calendar/CalendarPage";
+import { calendarLoader } from "./components/Calendar/loader";
 
 const router = createBrowserRouter([
   {
@@ -54,7 +56,7 @@ const router = createBrowserRouter([
     loader: authLoader,
     action: logoutAction,
     element: <ProtectedLayout />,
-    errorElement: <ErrorBoundary />,
+    // errorElement: <ErrorBoundary />,
     shouldRevalidate: () => false,
     children: [
       {
@@ -87,6 +89,11 @@ const router = createBrowserRouter([
       {
         path: "activity/:id",
         loader: activityCenterLoader,
+      },
+      {
+        path: "calendar",
+        element: <CalendarPage />,
+        loader: calendarLoader,
       },
       {
         path: "messages",

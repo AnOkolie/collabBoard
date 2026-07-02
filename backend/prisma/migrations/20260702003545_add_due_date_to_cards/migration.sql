@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "cards" ADD COLUMN     "due_date" TEXT;

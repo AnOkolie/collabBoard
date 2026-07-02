@@ -39,7 +39,13 @@ export const Friends = () => {
           <Stack>
             {friends.length === 0 ? (
               <>
-                <Flex>
+                <Flex
+                  h="70vh"
+                  w="120vh"
+                  align="center"
+                  justify="center"
+                  dir="column"
+                >
                   <Text>Search up users to make new friends...</Text>
                 </Flex>
               </>

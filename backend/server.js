@@ -15,6 +15,7 @@ import conversationRoutes from "./src/routes/conversation.route.js";
 import messageRoutes from "./src/routes/message.route.js";
 import activityRoutes from "./src/routes/activity.route.js";
 import friendRoutes from "./src/routes/friends.route.js";
+import calendarRoutes from "./src/routes/calendar.route.js";
 
 import { wss, webSocketSetup } from "./src/websockets/socket.js";
 import { socketAuthMiddleware } from "./src/middleware/socket.middleware.js";
@@ -65,7 +66,7 @@ app.use("/api", messageRoutes);
 app.use("/api", conversationRoutes);
 app.use("/api", activityRoutes);
 app.use("/api", friendRoutes);
-
+app.use("/api", calendarRoutes);
 const startServer = async () => {
   try {
     console.log("Starting server...");

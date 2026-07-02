@@ -57,6 +57,7 @@ model cards {
   column_id  String?   @db.Uuid
   content    String
   updated_at DateTime? @default(now()) @db.Timestamp(6)
+  due_date   String?   
   state      String?   @db.VarChar(50)
   title      String?   @db.VarChar(25)
   created_at DateTime  @default(now()) @db.Timestamp(6)

@@ -13,7 +13,7 @@ import {
   Button,
   Tooltip,
 } from "@mantine/core";
-import { Form, Outlet } from "react-router-dom";
+import { Form, href, Outlet } from "react-router-dom";
 import {
   IconSearch,
   IconUsers,
@@ -69,7 +69,13 @@ export function Navbar() {
                 notifDrawerHandler={notifDrawerHandler}
                 notifDrawerOpened={notifDrawerOpened}
               />
-              <IconCalendar />
+              <ActionIcon
+                variant="transparent"
+                onClick={() => navigate("/calendar")}
+              >
+                <IconCalendar />
+              </ActionIcon>
+
               <Avatar
                 component="button"
                 onClick={(e) => navigate("/profile")}
@@ -84,27 +90,22 @@ export function Navbar() {
 
         <AppShell.Navbar>
           <AppShell.Section>
-            <Flex
-              justify={opened ? "flex-start" : "flex-start"}
-              align="center"
-              px={opened ? "md" : 0}
-              mb="md"
+            <ActionIcon
+              onClick={toggle}
+              variant="subtle"
+              color="dark"
+              radius="md"
+              size="lg"
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+              mb={"md"}
+              ml={"sm"}
             >
-              <ActionIcon
-                onClick={toggle}
-                variant="subtle"
-                color="dark"
-                radius="md"
-                size="lg"
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <IconMenu2 size={22} stroke={2} />
-              </ActionIcon>
-            </Flex>
+              <IconMenu2 size={22} stroke={2} />
+            </ActionIcon>
 
             <NavLink
               label={opened ? "Home" : ""}

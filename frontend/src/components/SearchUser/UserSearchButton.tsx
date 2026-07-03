@@ -15,6 +15,7 @@ type Props = {
   size?: number;
   search?: string;
   setSearch?: React.Dispatch<React.SetStateAction<string>>;
+  conversationId?: string;
 };
 
 export const UserSearchButton = ({
@@ -23,6 +24,7 @@ export const UserSearchButton = ({
   size = 18,
   search = "",
   setSearch = () => {},
+  conversationId = "",
 }: Props) => {
   const userId = useAuthStore.getState().authUser?.id;
   const { sendJsonMessage, lastJsonMessage } = useSocket();
@@ -55,7 +57,7 @@ export const UserSearchButton = ({
     if (!userId) return;
     const data = await getOrCreateDirectConversation(userId, friendId);
     if (!data) return;
-    navigate(`/messages/${userId}/${data.conversation.id}`);
+    navigate(`/messages/${userId}/${conversationId}`);
   };
   useEffect(() => {
     if (!lastJsonMessage) return;

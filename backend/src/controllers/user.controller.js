@@ -221,7 +221,7 @@ export const getProfilePicture = async (user_id) => {
     }
     return { message: "Profile retrieved", profilepic: profile.rows[0] };
   } catch (err) {
-    console.log({ error: "Error retrieving profile:", err });
+    console.error({ error: "Error retrieving profile:", err });
   }
 };
 

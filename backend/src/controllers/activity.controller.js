@@ -35,6 +35,11 @@ export const getActivity = async (req, res) => {
         boards: {
           select: {
             title: true,
+            conversations: {
+              select: {
+                id: true,
+              },
+            },
           },
         },
       },

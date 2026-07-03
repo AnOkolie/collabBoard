@@ -10,6 +10,8 @@ import { useAuthStore } from "../zustand/authStore/useAuthStore";
 import { IncomingBoardEvent } from "../types/socket/incomingMessages";
 import { useActivityCentreStore } from "../zustand/activityCentreStore/useActivityCentreStore";
 import { timeString } from "../utilities/format";
+import { SocketProvider } from "../context/SocketContext";
+import { useBoardStore } from "../zustand/useBoardStore/useBoardStore";
 
 export const useSocketEvents = (
   lastJsonMessage: IncomingBoardEvent | null,
@@ -26,6 +28,9 @@ export const useSocketEvents = (
     addBoardActivity,
     addFriendActivity,
   } = useActivityCentreStore();
+  const addUserBoard = useBoardStore((s) => s.addUserBoard);
+
+  const removeUserBoard = useBoardStore((s) => s.removeUserBoard);
 
   const { currentConversation } = useMessageStore();
   const currConvId = useMessageStore((s) => s.currentConversation);
@@ -78,7 +83,9 @@ export const useSocketEvents = (
 
         displayNotifications(
           "Friend Request",
-          <FriendNotification id={user_id} />,
+          <SocketProvider>
+            <FriendNotification id={user_id} />
+          </SocketProvider>,
           "green",
         );
 
@@ -109,6 +116,9 @@ export const useSocketEvents = (
       }
 
       case "board:joined":
+        const newBoard = lastJsonMessage.payload;
+
+        addUserBoard(newBoard);
         displayNotifications("Accepted", lastJsonMessage.message, "green");
         break;
 
@@ -118,6 +128,17 @@ export const useSocketEvents = (
           lastJsonMessage.message,
           "red",
         );
+        break;
+      case "board:deleted":
+        const deletedBoard = lastJsonMessage.payload;
+
+        removeUserBoard(deletedBoard);
+        break;
+
+      case "board:updated":
+        const updatedBoard = lastJsonMessage.payload;
+        removeUserBoard(updatedBoard);
+        addUserBoard(updatedBoard);
         break;
       case "typing:start":
         if (currentConversation === lastJsonMessage.conversationId) {

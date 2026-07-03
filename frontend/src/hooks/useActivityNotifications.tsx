@@ -8,31 +8,13 @@ import { ActivityData } from "../types/activity";
 import { useActivityCentreStore } from "../zustand/activityCentreStore/useActivityCentreStore";
 
 export const useActivityHook = () => {
-  const fetcher = useFetcher<ActivityData>();
-  const { lastJsonMessage } = useSocket();
-
-  const userId = useAuthStore((s) => s.authUser?.id);
-  const { setBoardActivity, setFriendActivity } = useActivityCentreStore();
-  const [activityNotif, setActivityNotif] = useState<ActivityData>({
-    boardInvites: [],
-    friendRequests: [],
-  });
-  useEffect(() => {
-    if (!userId) return;
-
-    fetcher.load(`/activity/${userId}`);
-  }, [userId]);
-
-  useEffect(() => {
-    if (!fetcher.data) return;
-    setActivityNotif(fetcher.data);
-    setBoardActivity(fetcher.data.boardInvites ?? []);
-    setFriendActivity(fetcher.data.friendRequests ?? []);
-  }, [fetcher.data]);
+  const boardInvites = useActivityCentreStore((s) => s.boardActivity);
+  const friendRequests = useActivityCentreStore((s) => s.friendActivity);
 
   return {
-    activityNotif,
-    setActivityNotif,
-    isLoading: fetcher.state !== "idle",
+    activityNotif: {
+      boardInvites,
+      friendRequests,
+    },
   };
 };

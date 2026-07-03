@@ -25,11 +25,10 @@ export const useFriendSocket = () => {
   const respondToFriendRequest = useCallback(
     (requesterId: string, response: "accepted" | "decline") => {
       if (!currentUserId || !requesterId || !isConnected) return;
-
       sendJsonMessage({
         type: `friend-request:response`,
-        user_id: currentUserId,
-        friend_id: requesterId,
+        user_id: requesterId,
+        friend_id: currentUserId,
         response,
       });
     },

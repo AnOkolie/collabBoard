@@ -14,4 +14,5 @@ export type allFriends = {
   profilepic: string;
   sender: string;
   friendshipStatus: "friends" | "pending" | "blocked" | null;
+  conversationId: string;
 };

@@ -35,7 +35,7 @@ export const getTaskDetails = async (req, res) => {
     });
     return res.status(200).json({ data: formatDueDatesResponse(events) });
   } catch (err) {
-    console.log("error getting user events", err);
+    console.error("error getting user events", err);
     return res.status(500).json({ error: "Internal server error" });
   }
 };

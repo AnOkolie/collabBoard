@@ -1,4 +1,5 @@
 import { prisma } from "../db/prisma.js";
+import { formatConversation } from "../transformers/conversations.js";
 export const getMessagesById = async (req, res) => {
   const { conversation_id, user_id } = req.params;
 
@@ -60,7 +61,6 @@ export const getMessagesById = async (req, res) => {
           },
           take: 50,
         },
-        direct_conversation_key: true,
         display_picture: true,
         conversation_reads: {
           select: {
@@ -201,10 +201,14 @@ export const createMessage = async (
           id: board_id,
         },
         select: {
-          conversation_id: true,
+          conversations: {
+            select: {
+              id: true,
+            },
+          },
         },
       });
-      conversation_id = convo.conversation_id;
+      conversation_id = convo.conversations.id;
     }
     const membership = await prisma.conversation_members.findUnique({
       where: {
@@ -353,65 +357,4 @@ export const deleteReaction = async (req, res) => {
     console.error("Error deleting reaction", err);
     return res.status(500).json({ error: "Internal server error" });
   }
-};
-
-export const formatConversation = (conversation) => {
-  if (!conversation) return null;
-
-  return {
-    id: conversation.id,
-    type: conversation.type,
-    displayPicture: conversation.display_picture,
-    directConversationKey: conversation.direct_conversation_key,
-    lastMessageId: conversation.last_message_id,
-    name: conversation.name,
-
-    conversationMembers: conversation.conversation_members.map((member) => ({
-      id: member.users.id,
-      username: member.users.username,
-      profilePicture: member.users.profilepic,
-    })),
-
-    conversationReads:
-      conversation.conversation_reads?.map((read) => ({
-        userId: read.user_id,
-        lastReadMessageId: read.last_read_message_id,
-        updatedAt: read.updated_at,
-      })) ?? [],
-
-    messages:
-      conversation.messages?.map((msg) => ({
-        id: msg.id,
-        content: msg.content,
-        senderId: msg.sender_id,
-        messageType: msg.message_type,
-        createdAt: msg.created_at,
-        editedAt: msg.edited_at,
-        deletedAt: msg.deleted_at,
-
-        users: msg.users
-          ? {
-              id: msg.users.id,
-              username: msg.users.username,
-              profilePicture: msg.users.profilepic,
-            }
-          : null,
-
-        attachments:
-          msg.attachments?.map((att) => ({
-            fileName: att.file_name,
-            fileSize: att.file_size,
-            fileUrl: att.file_url,
-            createdAt: att.created_at,
-            deletedAt: att.deleted_at,
-          })) ?? [],
-
-        messageReactions:
-          msg.message_reactions?.map((r) => ({
-            userId: r.user_id,
-            reaction: r.reaction,
-            createdAt: r.created_at,
-          })) ?? [],
-      })) ?? [],
-  };
 };

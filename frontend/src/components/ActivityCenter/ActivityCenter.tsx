@@ -5,6 +5,7 @@ import { FriendRequests } from "./FriendRequests";
 import { BoardInvites } from "./BoardInvites";
 import { useActivityCentreStore } from "../../zustand/activityCentreStore/useActivityCentreStore";
 import { useState, useEffect } from "react";
+import { useLoaderData } from "react-router-dom";
 type DisclosureHandlers = {
   open: () => void;
   close: () => void;
@@ -21,15 +22,22 @@ export const ActivityCenter = ({
   notifDrawerOpened,
 }: ActivityCenterProps) => {
   useActivityHook();
+  const loaderData = useLoaderData();
   const {
     friendActivity,
     boardActivity,
     removeBoardActivity,
     removeFriendActivity,
+    setBoardActivity,
+    setFriendActivity,
   } = useActivityCentreStore();
 
   const [notifLength, setNotifLength] = useState(0);
-
+  useEffect(() => {
+    if (!loaderData) return;
+    setBoardActivity(loaderData.notifications.data.boardInvites ?? []);
+    setFriendActivity(loaderData.notifications.data.friendRequests ?? []);
+  }, [loaderData, setBoardActivity, setFriendActivity]);
   useEffect(() => {
     setNotifLength((boardActivity.length ?? 0) + (friendActivity.length ?? 0));
   }, [notifLength, setNotifLength, boardActivity, friendActivity]);

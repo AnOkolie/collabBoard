@@ -23,7 +23,6 @@ import { Notifications } from "@mantine/notifications";
 import { SearchUser } from "./components/SearchUser/SearchUser";
 import { searchLoader } from "./components/SearchUser/loader";
 import { searchAction } from "./components/SearchUser/action";
-import { activityCenterLoader } from "./components/ActivityCenter/loader";
 import { ErrorBoundary } from "./components/ErrorBoundary/ErrorBoundary";
 import { SocketProvider } from "./context/SocketContext";
 import { Message } from "./components/Messages/Message";
@@ -88,7 +87,6 @@ const router = createBrowserRouter([
       },
       {
         path: "activity/:id",
-        loader: activityCenterLoader,
       },
       {
         path: "calendar",

@@ -1,11 +1,10 @@
 import { Button, Text, Card, Stack, Flex } from "@mantine/core";
 
 import { useAuthStore } from "../../zustand/authStore/useAuthStore";
-import { useSocket } from "../../context/SocketContext";
-import { useRef } from "react";
 
 import { FriendRequestStructure } from "../../types/friends";
-import { ActivityData } from "~/types/activity";
+
+import { useFriendSocket } from "../../hooks/useFriendSocket";
 type DisclosureHandlers = {
   open: () => void;
   close: () => void;
@@ -22,22 +21,15 @@ export const FriendRequests = ({
   removeFriendRequest,
 }: ActivityCenterProps) => {
   if (!friendRequests) return null;
-  const { sendJsonMessage, lastJsonMessage } = useSocket();
-  const userId = useAuthStore((state) => state.authUser?.id);
-
+  const userId = useAuthStore((s) => s.authUser?.id);
+  const { respondToFriendRequest } = useFriendSocket();
   const handleClick = (
     friendId: string,
-    response: "accepted" | "declined",
+    response: "accepted" | "decline",
     friend: FriendRequestStructure,
   ) => {
-    const myId = useAuthStore.getState().authUser?.id;
-    if (!friendId || !response || !myId) return;
-    sendJsonMessage({
-      type: "friend-request:response",
-      friend_id: friendId,
-      user_id: myId,
-      response: response,
-    });
+    if (!friendId || !response) return;
+    respondToFriendRequest(friendId, response);
     removeFriendRequest(friend);
   };
 
@@ -61,7 +53,7 @@ export const FriendRequests = ({
                     size="xs"
                     color="green"
                     onClick={() =>
-                      handleClick(notif.friend_id, "accepted", notif)
+                      handleClick(notif.user_id, "accepted", notif)
                     }
                   >
                     Accept
@@ -71,9 +63,7 @@ export const FriendRequests = ({
                     size="xs"
                     variant="light"
                     color="red"
-                    onClick={() =>
-                      handleClick(notif.friend_id, "declined", notif)
-                    }
+                    onClick={() => handleClick(notif.user_id, "decline", notif)}
                   >
                     Decline
                   </Button>

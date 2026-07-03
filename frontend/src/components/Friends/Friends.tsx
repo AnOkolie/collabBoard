@@ -67,6 +67,7 @@ export const Friends = () => {
                         user={friend}
                         onSendRequest={() => sendFriendRequest(friend.id)}
                         size={14}
+                        conversationId={friend.conversationId}
                       />
                     </Flex>
                   </Group>

@@ -19,56 +19,73 @@ export const pendingFriend = async (user_id, friend_id) => {
       data: result,
     };
   } catch (error) {
-    console.log("Error creating pending request: ", error);
+    console.error("Error creating pending request: ", error);
     return { error: error };
   }
 };
 
 export const updateFriendship = async (user_id, friend_id, status) => {
-  if (!user_id || !friend_id) {
-    return;
-  }
+  if (!user_id || !friend_id) return;
+
   try {
-    const acceptRequest = await prisma.friendship_requests.deleteMany({
+    const deleted = await prisma.friendship_requests.deleteMany({
       where: {
         OR: [
-          {
-            user_id,
-            friend_id,
-          },
-          {
-            user_id: friend_id,
-            friend_id: user_id,
-          },
+          { user_id, friend_id },
+          { user_id: friend_id, friend_id: user_id },
         ],
       },
     });
-    if (!acceptRequest) {
-      return;
-    }
-    if (status === "accepted") {
-      const makeFriends = await prisma.friends.create({
+
+    if (deleted.count === 0) return;
+
+    if (status !== "accepted") return;
+
+    const friendship = await prisma.$transaction(async (tx) => {
+      const conversation = await tx.conversations.create({
         data: {
-          friend_id: friend_id,
-          user_id: user_id,
+          type: "direct",
+          created_by: user_id,
+          conversation_members: {
+            create: [
+              {
+                user_id,
+                joined_at: new Date(),
+                role: "admin",
+              },
+              {
+                user_id: friend_id,
+                joined_at: new Date(),
+                role: "admin",
+              },
+            ],
+          },
+        },
+        select: { id: true },
+      });
+
+      const newFriend = await tx.friends.create({
+        data: {
+          user_id,
+          friend_id,
+          conversation_id: conversation.id,
         },
       });
-      const new_friend = await prisma.users.findUnique({
-        where: {
-          id: friend_id,
-        },
-        select: {
-          username: true,
-        },
+
+      const friendUser = await tx.users.findUnique({
+        where: { id: friend_id },
+        select: { username: true },
       });
-      if (!makeFriends) {
-        return { message: "Failed to update friend request" };
-      }
-      return { message: `You are now friends with ${new_friend.username}` };
-    }
+
+      return friendUser;
+    });
+
+    return {
+      message: `You are now friends with ${friendship?.username ?? "user"}`,
+    };
   } catch (error) {
-    console.log("Error updating friend request: ", error);
-    return { error: error };
+    console.error("Error updating friend request: ", error);
+    return { error };
   }
 };
 
@@ -207,6 +224,7 @@ export const getAllFriends = async (req, res) => {
               },
             },
             status: true,
+            conversation_id: true,
           },
         },
         friendsReceived: {
@@ -220,6 +238,7 @@ export const getAllFriends = async (req, res) => {
               },
             },
             status: true,
+            conversation_id: true,
           },
         },
       },
@@ -271,6 +290,8 @@ const formatResponse = (friends) => {
         friend.user_id ??
         friend.user?.id ??
         friend.friend?.id,
+      conversationId:
+        friend.user?.conversation_id ?? friend.friend?.conversation_id,
     };
   });
   return result;

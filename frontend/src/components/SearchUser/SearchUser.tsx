@@ -15,7 +15,6 @@ import { SearchUserComponent } from "../../hooks/useSearchUser";
 import { useSearchUser } from "../../hooks/useSearchUser";
 import { UserSearchButton } from "./UserSearchButton";
 import { useFriendSocket } from "../../hooks/useFriendSocket";
-import { useSocket } from "../../context/SocketContext";
 
 export const SearchUser = () => {
   const { searchName, setSearchName, usersByName, isLoading } =

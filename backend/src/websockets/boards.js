@@ -19,6 +19,7 @@ import { stringify } from "node:querystring";
 import { createMessage } from "../controllers/messages.controller.js";
 import { SYSTEM_SENDER_ID } from "../utils/strings.js";
 import { generateUserJoinSystemMessage } from "../transformers/boards.js";
+import { formatOutgoingMessage } from "../transformers/messages.js";
 
 export const handleBoardInvitation = async (user_id, friend_id, board_id) => {
   const ws = userSocketMap.get(user_id);
@@ -118,7 +119,7 @@ export const updateBoardInvite = async (board_id, user_id, host_id, state) => {
     return ws.send(
       JSON.stringify({
         type: "message:received",
-        payload: systemMessage.data,
+        payload: formatOutgoingMessage(systemMessage.data),
       }),
     );
   }

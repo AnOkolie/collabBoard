@@ -1,7 +1,10 @@
 import { getConversationMembers } from "../controllers/conversations.controller.js";
 import { createMessage } from "../controllers/messages.controller.js";
 import { userSocketMap } from "./socket.js";
-
+import {
+  formatOutgoingMessage,
+  formatAttachments,
+} from "../transformers/messages.js";
 export const broadcastMessage = async (ws, conversation_id, message) => {
   const { senderId, content, messageType, metadata, attachments } = message;
   const result = await createMessage(
@@ -32,45 +35,6 @@ export const broadcastMessage = async (ws, conversation_id, message) => {
       );
     }
   }
-};
-
-const formatAttachments = (attachments) => {
-  const attachment = attachments.map((file) => {
-    return {
-      file_name: file.fileName,
-      file_size: file.fileSize,
-      mime_type: file.mimeType,
-      file_url: file.fileUrl,
-    };
-  });
-  return attachment;
-};
-
-const formatOutgoingMessage = (result) => {
-  const message = {
-    id: result.id,
-    content: result.content,
-    senderId: result.sender_id,
-    messageType: result.message_type,
-    createdAt: result.created_at,
-    conversationId: result.conversation_id,
-    edited_at: result.edited_at,
-    users: result.conversations.conversation_members,
-    attachments: result.attachments.map((file) => {
-      return {
-        fileName: file.file_name,
-        fileUrl: file.file_url,
-        fileSize: file.file_size,
-        mimeType: file.mime_type,
-      };
-    }),
-    messageReactions: result.message_reactions,
-    sender: {
-      username: result.users.username,
-      profilepic: result.users.profilepic,
-    },
-  };
-  return message;
 };
 
 export const broadcastTypingIcon = async (

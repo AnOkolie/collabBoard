@@ -4,7 +4,6 @@ import { useSocketConnection } from "../hooks/useSocketConnection";
 import { useTypedBoardMessage } from "../hooks/useBoardInvitations";
 
 import { BoardSocketContextValue } from "../types/socket";
-import { useFriendRequestNotifications } from "../hooks/useFriendRequestNotification";
 
 const SocketContext = createContext<BoardSocketContextValue | null>(null);
 

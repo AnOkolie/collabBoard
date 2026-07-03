@@ -18,6 +18,7 @@ import { BoardsGrid } from "./BoardsGrid";
 import { BoardStatsPanel } from "./BoardStatsPanel";
 import { BoardModals } from "./BoardModals";
 import { useSocket } from "../../context/SocketContext";
+import { useBoardStore } from "../../zustand/useBoardStore/useBoardStore";
 
 type LoaderData = {
   boards: {
@@ -38,22 +39,22 @@ export const BoardPage = () => {
   const [boardTitle, setBoardTitle] = useState("");
   const [newBoardTitle, setNewBoardTitle] = useState("");
   const [selectedBoardId, setSelectedBoardId] = useState("");
-  const [rows, setRows] = useState<BoardType[]>(
-    loaderData?.boards?.board ?? [],
-  );
+  // const [rows, setRows] = useState<BoardType[]>(
+  //   loaderData?.boards?.board ?? [],
+  // );
   const [createBoardOpened, createBoardHandlers] = useDisclosure(false);
   const [boardActionsOpened, boardActionsHandlers] = useDisclosure(false);
   const [deleteBoardOpened, deleteBoardHandlers] = useDisclosure(false);
   const [renameBoardOpened, renameBoardHandlers] = useDisclosure(false);
   const boardDetails = stats;
-
+  const { userBoards, setUserBoards } = useBoardStore();
   const boardProgress = useMemo(() => {
     const total = stats?.total ?? 0;
     const completed = stats?.Completed ?? 0;
     if (!total) return 0;
     return Math.round((completed / total) * 100);
   }, [stats]);
-  const noBoards = rows.length === 0;
+  const noBoards = userBoards.length === 0;
 
   const handleCreateBoardSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
     if (!boardTitle || !boardTitle.trim()) {
@@ -81,7 +82,7 @@ export const BoardPage = () => {
 
   useEffect(() => {
     if (!loaderData) return;
-    setRows(loaderData.boards?.board ?? []);
+    setUserBoards(loaderData.boards?.board ?? []);
   }, [loaderData]);
   useEffect(() => {
     if (
@@ -108,41 +109,6 @@ export const BoardPage = () => {
       });
     };
   }, [isConnected, selectedBoardId, sendJsonMessage]);
-
-  useEffect(() => {
-    if (!lastJsonMessage) return;
-    const { type } = lastJsonMessage;
-    switch (type) {
-      case "board:deleted":
-        const deletedBoard = lastJsonMessage.payload as BoardType;
-
-        setRows((prevRows) =>
-          prevRows.filter((item) => item.id !== deletedBoard.id),
-        );
-        break;
-
-      case "board:updated":
-        const updatedBoard = lastJsonMessage.payload as BoardType;
-
-        setRows((prevRows) => [
-          ...prevRows.filter((item) => item.id !== updatedBoard.id),
-
-          updatedBoard,
-        ]);
-        break;
-      case "board:joined":
-        const newBoard = lastJsonMessage.payload as BoardType;
-
-        setRows((prevRows) => [
-          ...prevRows.filter((item) => item.id !== newBoard.id),
-
-          newBoard,
-        ]);
-        break;
-      default:
-        console.warn("Unhandled websocket message", lastJsonMessage);
-    }
-  }, [lastJsonMessage]);
 
   return (
     <Container size="xl" py="xl">
@@ -203,7 +169,7 @@ export const BoardPage = () => {
                     <Text size="sm" c="dimmed">
                       {noBoards
                         ? "No boards yet"
-                        : `${rows.length} board${rows.length === 1 ? "" : "s"} available`}
+                        : `${userBoards.length} board${userBoards.length === 1 ? "" : "s"} available`}
                     </Text>
                   </div>
                 </Group>
@@ -211,7 +177,7 @@ export const BoardPage = () => {
                 <Divider />
 
                 <BoardsGrid
-                  rows={rows}
+                  rows={userBoards}
                   noBoards={noBoards}
                   onCreateBoard={createBoardHandlers.open}
                   onOpenBoard={navigate}

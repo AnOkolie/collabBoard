@@ -24,11 +24,9 @@ export const getBoard = async (req, res) => {
         board_members: true,
       },
     });
-
     if (!result) {
       return res.status(200).json({ message: "No boards found for this user" });
     }
-
     return res.status(200).json({
       message: "Board retrieved successfully",
       board: formatGetBoard(result),
@@ -48,6 +46,7 @@ export const addBoard = async (req, res) => {
 
   try {
     const boardCreation = await prisma.$transaction(async (tx) => {
+      const defaults = ["To Do", "In Progress", "Completed"];
       const board = await tx.boards.create({
         data: {
           title,
@@ -56,16 +55,14 @@ export const addBoard = async (req, res) => {
         },
       });
 
-      const defaults = ["To Do", "In Progress", "Completed"];
-
-      await tx.columns.createMany({
+      const columns = await tx.columns.createMany({
         data: defaults.map((title) => ({
           board_id: board.id,
           title,
         })),
       });
 
-      await tx.board_members.create({
+      const board_members = await tx.board_members.create({
         data: {
           board_id: board.id,
           user_id,
@@ -73,7 +70,7 @@ export const addBoard = async (req, res) => {
         },
       });
 
-      await tx.conversations.create({
+      const conversation = await tx.conversations.create({
         data: {
           type: "group",
           name: title,
@@ -91,6 +88,19 @@ export const addBoard = async (req, res) => {
         },
       });
 
+      await tx.boards.update({
+        where: {
+          id: board.id,
+        },
+        data: {
+          conversations: {
+            connect: {
+              id: conversation.id,
+            },
+          },
+        },
+      });
+
       return tx.boards.findUnique({
         where: {
           id: board.id,
@@ -101,6 +111,7 @@ export const addBoard = async (req, res) => {
           conversations: true,
         },
       });
+      return board;
     });
     return res.status(201).json({
       message: "Board added successfully",

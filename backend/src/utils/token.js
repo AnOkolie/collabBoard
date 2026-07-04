@@ -2,7 +2,7 @@ import { ENV } from "./env.js";
 import jwt from "jsonwebtoken";
 import { v4 as uuidv4 } from "uuid";
 
-const accessTTL = "2m";
+const accessTTL = "15m";
 const refreshTTL = "7d";
 
 export const generateAccessToken = (id, email) => {

@@ -74,15 +74,9 @@ export const getMessagesById = async (req, res) => {
         name: true,
       },
     });
-    if (conversation && conversation.type === "direct") {
-      conversation.conversation_members =
-        conversation.conversation_members.filter(
-          (member) => member.users.id !== user_id,
-        );
-      conversation.name = conversation.conversation_members[0].users.username;
-    }
+
     return res.status(200).json({
-      data: formatConversation(conversation),
+      data: formatConversation(conversation, user_id),
     });
   } catch (err) {
     console.error(err);

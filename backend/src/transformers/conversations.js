@@ -89,21 +89,24 @@ export const formatUserConversations = (conversations) => {
   });
 };
 
-export const formatConversation = (conversation) => {
+export const formatConversation = (conversation, user_id) => {
   if (!conversation) return null;
-
+  console.log("user name", conversation.conversation_members[0].users.username);
   return {
     id: conversation.id,
     type: conversation.type,
     displayPicture: getDisplayPicture(conversation),
     lastMessageId: conversation.last_message_id,
-    name: conversation.name,
+    name: getConversationName(conversation),
 
-    conversationMembers: conversation.conversation_members.map((member) => ({
-      id: member.users.id,
-      username: member.users.username,
-      profilePicture: member.users.profilepic,
-    })),
+    senderId: conversation.messages.map((convo) => convo.sender_id),
+    conversationMembers: conversation.conversation_members
+      .filter((member) => member.users.id !== user_id)
+      .map((member) => ({
+        id: member.users.id,
+        username: member.users.username,
+        profilePicture: member.users.profilepic,
+      })),
 
     conversationReads:
       conversation.conversation_reads?.map((read) => ({
@@ -121,7 +124,9 @@ export const formatConversation = (conversation) => {
         createdAt: msg.created_at,
         editedAt: msg.edited_at,
         deletedAt: msg.deleted_at,
-
+        sender: conversation.conversation_members.find(
+          (user) => user.users.id === msg.sender_id,
+        ).users,
         users: msg.users
           ? {
               id: msg.users.id,

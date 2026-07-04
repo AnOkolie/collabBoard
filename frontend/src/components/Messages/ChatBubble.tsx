@@ -15,6 +15,7 @@ import {
 import { fullMessageResponse } from "../../types/messages";
 import { IconFile } from "@tabler/icons-react";
 import { downloadFile } from "../../utilities/supabase";
+import { useAuthStore } from "../../zustand/authStore/useAuthStore";
 
 interface messageLayout {
   message: fullMessageResponse;
@@ -22,6 +23,9 @@ interface messageLayout {
 }
 
 export const ChatBubble = ({ message, isUser }: messageLayout) => {
+  const userId = useAuthStore((s) => s.authUser?.id);
+  const profilepic = useAuthStore((s) => s.authUser?.profilepic);
+  console.log("message", message);
   return (
     <Box
       style={{
@@ -34,7 +38,7 @@ export const ChatBubble = ({ message, isUser }: messageLayout) => {
         {/* avatar left for others, right for user */}
         {!isUser && (
           <Tooltip label={message.users.username}>
-            <Avatar src={message.users.profilepic} size="sm" />
+            <Avatar src={message.sender?.profilepic ?? null} size="sm" />
           </Tooltip>
         )}
 
@@ -89,7 +93,7 @@ export const ChatBubble = ({ message, isUser }: messageLayout) => {
         {/* avatar right for user */}
         {isUser && (
           <Tooltip label={message.users.username}>
-            <Avatar src={message.users.profilepic} size="sm" />
+            <Avatar src={profilepic} size="sm" />
           </Tooltip>
         )}
       </Group>

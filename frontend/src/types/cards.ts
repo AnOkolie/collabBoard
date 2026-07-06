@@ -6,3 +6,16 @@ export type addCardBody = {
   state: string | null;
   title: string;
 };
+
+export type tasks = {
+  id: string;
+  columnId: string;
+  content: string;
+  updatedAt: Date;
+  state: string | null;
+  title: string;
+  dueDate: Date;
+  assignee: string;
+  boardId: string;
+  conversationId: string;
+};

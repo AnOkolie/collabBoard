@@ -36,6 +36,7 @@ import { friendLoader } from "./components/Friends/loader";
 import { groupMessagesLoader } from "./components/Messages/groupMessagesLoader";
 import { CalendarPage } from "./components/Calendar/CalendarPage";
 import { calendarLoader } from "./components/Calendar/loader";
+import { Dashboard } from "./components/Dashboard/Dashboard";
 
 const router = createBrowserRouter([
   {
@@ -92,6 +93,11 @@ const router = createBrowserRouter([
         path: "calendar",
         element: <CalendarPage />,
         loader: calendarLoader,
+      },
+      {
+        path: "dashboard",
+        element: <Dashboard />,
+        loader: boardLoader,
       },
       {
         path: "messages",

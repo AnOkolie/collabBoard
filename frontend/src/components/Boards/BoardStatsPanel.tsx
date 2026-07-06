@@ -7,6 +7,8 @@ import {
   Stack,
   Text,
 } from "@mantine/core";
+import { Announcements } from "./Announcements";
+import { useNavigate } from "react-router-dom";
 
 type BoardStatsPanelProps = {
   boardProgress: number;
@@ -18,43 +20,25 @@ export const BoardStatsPanel = ({
   boardDetails,
 }: BoardStatsPanelProps) => {
   const statEntries = Object.entries(boardDetails) as [string, number][];
-
+  const navigate = useNavigate();
   return (
     <Stack gap="md">
       <Paper withBorder radius="md" p="md">
         <Text fw={600} mb="sm">
-          Design Area
+          Quick Stats
         </Text>
 
         <Flex justify="center" mb="md">
           <RingProgress
             sections={[{ value: boardProgress, color: "blue" }]}
             label={<Text ta="center">{boardProgress}%</Text>}
+            onClick={() => navigate("dashboard")}
           />
         </Flex>
-
-        <Text fw={600} mb="sm">
-          Projects
-        </Text>
-
-        <Grid>
-          {statEntries.map(([key, value]) => (
-            <Grid.Col span={6} key={key}>
-              <Card withBorder radius="md" p="sm">
-                <Text size="sm" c="dimmed">
-                  {key}
-                </Text>
-                <Text size="xl" fw={700}>
-                  {value}
-                </Text>
-              </Card>
-            </Grid.Col>
-          ))}
-        </Grid>
       </Paper>
 
       <Card p="md" withBorder radius="md">
-        <Text fw={600}>Announcements</Text>
+        <Announcements />
       </Card>
     </Stack>
   );

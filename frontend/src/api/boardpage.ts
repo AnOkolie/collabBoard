@@ -7,6 +7,7 @@ import {
 import { RequestMethods } from "../types/requests";
 import { useAuthStore } from "../zustand/authStore/useAuthStore";
 import { RequestResolve } from "../types/requests";
+import { tasks } from "~/types/cards";
 
 export const getBoards = async (
   userId: string,
@@ -42,3 +43,9 @@ export const boardHistory = async (
   userId: string,
 ): Promise<RequestResolve<BoardHistoryResponse>> =>
   await request(RequestMethods.GET, `board-history-summary/${userId}`);
+
+export const getTasks = async (): Promise<RequestResolve<tasks>> => {
+  const userId = useAuthStore.getState().authUser?.id;
+  if (!userId) throw new Error();
+  return await request(RequestMethods.GET, `cards/tasks/${userId}`);
+};

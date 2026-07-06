@@ -1,6 +1,7 @@
 import { pool } from "../db/db.js";
 import { broadcastBoard } from "../websockets/boards.js";
 import { prisma } from "../db/prisma.js";
+import { formatGetTasksResponse } from "../transformers/card.js";
 export const addCards = async (req, res) => {
   const {
     content: content,
@@ -208,5 +209,78 @@ const updateBoardProgress = async (boardId) => {
     }
   } catch (error) {
     console.error("Error updating board progress:", error);
+  }
+};
+
+export const getUpcomingTasks = async (req, res) => {
+  console.log("fetching");
+  const { user_id } = req.params;
+  if (!user_id) {
+    console.log("missing");
+    return res.status(400).json({ error: "Missing required fields" });
+  }
+  try {
+    console.log("workimng");
+    const result = await prisma.cards.findMany({
+      where: {
+        assigned_user: {
+          id: user_id,
+        },
+        state: {
+          not: {
+            equals: "completed",
+          },
+        },
+      },
+      take: 5,
+      orderBy: {
+        due_date: "asc",
+      },
+    });
+    const columnIds = result.map((card) => {
+      return card.column_id;
+    });
+    const boards = await prisma.boards.findMany({
+      where: {
+        columns: {
+          some: {
+            id: {
+              in: columnIds,
+            },
+          },
+        },
+      },
+      select: {
+        id: true,
+        columns: { select: { id: true } },
+        conversations: { select: { id: true } },
+      },
+    });
+    const boardMap = new Map();
+    boards.map((b) => {
+      b.columns.map((col) => {
+        boardMap.set(col.id, b);
+      });
+      return;
+    });
+    for (const [key, value] of boardMap) {
+      console.log(`key: ${key} and value: ${value}`);
+    }
+    const data = result.map((card) => {
+      console.log(card.column_id);
+      const boardId = boardMap.get(card.column_id);
+      console.log("board id is:", boardId);
+      return {
+        ...card,
+        board_id: boardId.id,
+        conversationId: boardId.conversations.id,
+      };
+    });
+    return res
+      .status(200)
+      .json({ message: "Tasks retrieved", data: formatGetTasksResponse(data) });
+  } catch (err) {
+    console.error("error getting upcoming tasks", err);
+    return res.status(500).json({ error: "Internal server error" });
   }
 };

@@ -5,6 +5,8 @@ type boardStore = {
   boardId: string;
   setBoardId: (boardId: string) => void;
   userBoards: BoardType[];
+  currBoard: BoardType | undefined;
+  setCurrBoard: (board: BoardType) => void;
   setUserBoards: (boards: BoardType[]) => void;
   addUserBoard: (board: BoardType) => void;
   removeUserBoard: (board: BoardType) => void;
@@ -13,6 +15,8 @@ type boardStore = {
 export const useBoardStore = create<boardStore>()((set) => ({
   boardId: "",
   userBoards: [],
+  currBoard: undefined,
+  setCurrBoard: (board) => set({ currBoard: board }),
   setBoardId: (board_id: string) => set(() => ({ boardId: board_id })),
   setUserBoards: (boards) => set({ userBoards: boards }),
   addUserBoard: (board) =>

@@ -23,9 +23,7 @@ interface messageLayout {
 }
 
 export const ChatBubble = ({ message, isUser }: messageLayout) => {
-  const userId = useAuthStore((s) => s.authUser?.id);
   const profilepic = useAuthStore((s) => s.authUser?.profilepic);
-  console.log("message", message);
   return (
     <Box
       style={{

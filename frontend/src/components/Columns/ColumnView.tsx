@@ -1,4 +1,4 @@
-import { Container, Paper, Stack, Divider, Group, Button } from "@mantine/core";
+import { Container, Paper, Stack, Divider } from "@mantine/core";
 import { useEffect, useState } from "react";
 import { useActionData, useLoaderData } from "react-router-dom";
 import { useDisclosure } from "@mantine/hooks";
@@ -6,15 +6,16 @@ import { DndContext, DragEndEvent, closestCorners } from "@dnd-kit/core";
 
 import { ColumnType } from "../../types/columns";
 import { BoardMembers } from "../../types/boards";
-import { moveCard } from "../../api/card";
 import { displayNotifications } from "../../utilities/notification/displayNotifications";
-import { useSocket } from "../../context/SocketContext";
-import { useAuthStore } from "../../zustand/authStore/useAuthStore";
+
 import { useSearchUser } from "../../hooks/useSearchUser";
 
 import { BoardHeader } from "./BoardHeader";
 import { BoardWorkflow } from "./BoardWorkflow";
 import { BoardModals } from "./BoardModals";
+import { useColumnStore } from "../../zustand/columnStore/useColumnStore";
+import { useColumnHook } from "../../hooks/useColumnHook";
+import { usePresenceHook } from "../../hooks/usePresenceHook";
 
 type LoaderData = {
   message: string;
@@ -34,32 +35,29 @@ type CardType = ColumnType["cards"][number];
 export const ColumnView = () => {
   const { data } = useLoaderData() as LoaderData;
   const actionData = useActionData() as any;
-
   const [createColumnOpened, createColumnHandlers] = useDisclosure(false);
   const [createCardOpened, createCardHandlers] = useDisclosure(false);
   const [cardDetailsOpened, cardDetailsHandlers] = useDisclosure(false);
   const [membersListOpened, memberListHandlers] = useDisclosure(false);
 
-  const [boardId, setBoardId] = useState("");
   const [selectedColumnId, setSelectedColumnId] = useState("");
   const [selectedCard, setSelectedCard] = useState<CardType | null>(null);
-  const [boardColumns, setBoardColumns] = useState<ColumnType[]>(
-    data.columns.columns ?? [],
-  );
+
   const [boardMembers, setBoardMembers] = useState<BoardMembers[]>(
     data.members.data ?? [],
   );
 
   const { searchName, setSearchName, usersByName } = useSearchUser(500);
-  const { sendJsonMessage, isConnected, lastJsonMessage } = useSocket();
-
+  const { boardId, setBoardId, columns, setColumns } = useColumnStore();
+  usePresenceHook();
   useEffect(() => {
-    setBoardColumns(data.columns.columns ?? []);
+    if (!data) return;
+    setColumns(data.columns.columns ?? []);
     setBoardMembers(data.members.data ?? []);
     if (data.columns.columns.length > 0) {
-      setBoardId(data.columns.columns[0].board_id);
+      setBoardId(data.columns.columns[0].boardId);
     }
-  }, [data.columns, data.members]);
+  }, [data]);
 
   useEffect(() => {
     if (!actionData) return;
@@ -78,136 +76,7 @@ export const ColumnView = () => {
     }
   }, [actionData]);
 
-  useEffect(() => {
-    if (!isConnected || !boardId) return;
-
-    sendJsonMessage({
-      type: "board:join",
-      payload: {
-        board_id: boardId,
-      },
-    });
-
-    return () => {
-      sendJsonMessage({
-        type: "board:leave",
-        payload: {
-          board_id: boardId,
-        },
-      });
-    };
-  }, [isConnected, boardId, sendJsonMessage]);
-
-  useEffect(() => {
-    if (!lastJsonMessage) return;
-
-    const { type } = lastJsonMessage;
-
-    switch (type) {
-      case "column:created": {
-        const { payload } = lastJsonMessage;
-        const newColumn = payload;
-        setBoardColumns([...boardColumns, newColumn]);
-        break;
-      }
-      case "column:deleted": {
-        const { payload } = lastJsonMessage;
-        const deletedColumn = payload;
-        setBoardColumns((prevColumn) =>
-          prevColumn.filter((column) => column.id !== deletedColumn.id),
-        );
-        break;
-      }
-      case "column:updated": {
-        const { payload } = lastJsonMessage;
-        const updatedColumn = payload;
-        setBoardColumns((prevColumn) =>
-          prevColumn.filter((column) => column.id !== updatedColumn.id),
-        );
-        setBoardColumns([...boardColumns, updatedColumn]);
-        break;
-      }
-      case "card:created": {
-        const { payload } = lastJsonMessage;
-        const { columnId, card } = payload;
-
-        setBoardColumns((prev) =>
-          prev.map((column) =>
-            column.id === columnId
-              ? { ...column, cards: [...column.cards, card] }
-              : column,
-          ),
-        );
-        break;
-      }
-
-      case "card:moved": {
-        const { payload } = lastJsonMessage;
-        const { cardId, fromColumnId, toColumnId } = payload;
-
-        setBoardColumns((prev) => {
-          let movedCard: CardType | null = null;
-
-          const next = prev.map((column) => {
-            if (column.id === fromColumnId) {
-              const found = column.cards.find((c) => c.id === cardId);
-              if (found) movedCard = { ...found, column_id: toColumnId };
-
-              return {
-                ...column,
-                cards: column.cards.filter((c) => c.id !== cardId),
-              };
-            }
-
-            return column;
-          });
-
-          if (!movedCard) return prev;
-
-          return next.map((column) =>
-            column.id === toColumnId
-              ? { ...column, cards: [...column.cards, movedCard!] }
-              : column,
-          );
-        });
-        break;
-      }
-
-      case "card:updated": {
-        const { payload } = lastJsonMessage;
-        const { card } = payload;
-
-        setBoardColumns((prev) =>
-          prev.map((column) => ({
-            ...column,
-            cards: column.cards.map((c) => (c.id === card.id ? card : c)),
-          })),
-        );
-        break;
-      }
-
-      case "card:deleted": {
-        const { payload } = lastJsonMessage;
-        const { cardId, columnId } = payload;
-
-        setBoardColumns((prev) =>
-          prev.map((column) =>
-            column.id === columnId
-              ? {
-                  ...column,
-                  cards: column.cards.filter((c) => c.id !== cardId),
-                }
-              : column,
-          ),
-        );
-        break;
-      }
-
-      default:
-        break;
-    }
-  }, [lastJsonMessage]);
-
+  const { sendBoardInvite, optimisticMoveCard } = useColumnHook();
   const handleOpenCreateCard = (columnId: string) => {
     setSelectedColumnId(columnId);
     createCardHandlers.open();
@@ -219,17 +88,7 @@ export const ColumnView = () => {
   };
 
   const handleInviteUser = (friendId: string) => {
-    const currUser = useAuthStore.getState().authUser;
-    if (!currUser || !currUser.id || !friendId || !isConnected || !boardId)
-      return;
-
-    sendJsonMessage({
-      type: "board-invite",
-      user_id: currUser.id,
-      friend_id: friendId,
-      board_id: boardId,
-      message: "Board invitation",
-    });
+    sendBoardInvite(friendId);
   };
 
   const handleDragEnd = async (event: DragEndEvent) => {
@@ -242,7 +101,7 @@ export const ColumnView = () => {
     let movedCard: CardType | null = null;
     let sourceColumnId: string | null = null;
 
-    for (const column of boardColumns) {
+    for (const column of columns) {
       const found = column.cards.find((card) => card.id === cardId);
       if (found) {
         movedCard = found;
@@ -254,35 +113,7 @@ export const ColumnView = () => {
     if (!movedCard || !sourceColumnId) return;
     if (sourceColumnId === targetColumnId) return;
 
-    const previousColumns = boardColumns;
-    const updatedCard = { ...movedCard, column_id: targetColumnId };
-
-    const nextColumns = boardColumns.map((column) => {
-      if (column.id === sourceColumnId) {
-        return {
-          ...column,
-          cards: column.cards.filter((card) => card.id !== cardId),
-        };
-      }
-
-      if (column.id === targetColumnId) {
-        return {
-          ...column,
-          cards: [...column.cards, updatedCard],
-        };
-      }
-
-      return column;
-    });
-
-    setBoardColumns(nextColumns);
-
-    try {
-      await moveCard(cardId, targetColumnId, boardId);
-    } catch (error) {
-      console.error("Failed to move card:", error);
-      setBoardColumns(previousColumns);
-    }
+    optimisticMoveCard(movedCard.id, sourceColumnId, targetColumnId);
   };
 
   return (
@@ -321,7 +152,6 @@ export const ColumnView = () => {
               onDragEnd={handleDragEnd}
             >
               <BoardWorkflow
-                boardColumns={boardColumns}
                 onAddCard={handleOpenCreateCard}
                 onOpenCardDetails={handleOpenCardDetails}
               />

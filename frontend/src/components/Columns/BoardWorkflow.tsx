@@ -2,20 +2,20 @@ import { Grid, Group, Stack, Text, Title } from "@mantine/core";
 import { ColumnType } from "../../types/columns";
 import { DraggableCard } from "../Cards/CardView";
 import { DroppableColumn } from "./DroppableColumn";
+import { useColumnStore } from "../../zustand/columnStore/useColumnStore";
 
 type CardType = ColumnType["cards"][number];
 
 type BoardWorkflowProps = {
-  boardColumns: ColumnType[];
   onAddCard: (columnId: string) => void;
   onOpenCardDetails: (card: CardType) => void;
 };
 
 export const BoardWorkflow = ({
-  boardColumns,
   onAddCard,
   onOpenCardDetails,
 }: BoardWorkflowProps) => {
+  const boardColumns = useColumnStore((s) => s.columns);
   return (
     <Stack gap="md">
       <Group justify="space-between">

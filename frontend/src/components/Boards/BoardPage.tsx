@@ -19,6 +19,14 @@ import { BoardStatsPanel } from "./BoardStatsPanel";
 import { BoardModals } from "./BoardModals";
 import { useSocket } from "../../context/SocketContext";
 import { useBoardStore } from "../../zustand/useBoardStore/useBoardStore";
+import {
+  BOARD_ANNOUNCEMENTS,
+  BOARD_PROJECTS,
+  BOARD_QUICK_NOTES,
+  CREATE_BOARD,
+  YOUR_BOARDS,
+  YOUR_BOARDS_DESCRIPTION,
+} from "../../utilities/string";
 
 type LoaderData = {
   boards: {
@@ -39,9 +47,6 @@ export const BoardPage = () => {
   const [boardTitle, setBoardTitle] = useState("");
   const [newBoardTitle, setNewBoardTitle] = useState("");
   const [selectedBoardId, setSelectedBoardId] = useState("");
-  // const [rows, setRows] = useState<BoardType[]>(
-  //   loaderData?.boards?.board ?? [],
-  // );
   const [createBoardOpened, createBoardHandlers] = useDisclosure(false);
   const [boardActionsOpened, boardActionsHandlers] = useDisclosure(false);
   const [deleteBoardOpened, deleteBoardHandlers] = useDisclosure(false);
@@ -78,7 +83,7 @@ export const BoardPage = () => {
     setSelectedBoardId(boardId);
     boardActionsHandlers.open();
   };
-  const { sendJsonMessage, lastJsonMessage, isConnected } = useSocket();
+  const { sendJsonMessage, isConnected } = useSocket();
 
   useEffect(() => {
     if (!loaderData) return;
@@ -111,7 +116,7 @@ export const BoardPage = () => {
   }, [isConnected, selectedBoardId, sendJsonMessage]);
 
   return (
-    <Container size="xl" py="xl">
+    <Container size="xl" py="xl" c={"black"}>
       <BoardModals
         boardTitle={boardTitle}
         setBoardTitle={setBoardTitle}
@@ -142,10 +147,9 @@ export const BoardPage = () => {
         >
           <Group justify="space-between" align="flex-start">
             <div>
-              <Title order={1}>Your Boards</Title>
+              <Title order={1}>{YOUR_BOARDS}</Title>
               <Text c="dimmed" mt={6}>
-                Manage projects, track progress, and jump back into your active
-                work.
+                {YOUR_BOARDS_DESCRIPTION}
               </Text>
             </div>
 
@@ -154,7 +158,7 @@ export const BoardPage = () => {
               radius="xl"
               onClick={createBoardHandlers.open}
             >
-              Create Board
+              {CREATE_BOARD}
             </Button>
           </Group>
         </Paper>
@@ -165,7 +169,7 @@ export const BoardPage = () => {
               <Stack gap="md">
                 <Group justify="space-between" align="center">
                   <div>
-                    <Title order={3}>Projects</Title>
+                    <Title order={3}>{BOARD_PROJECTS}</Title>
                     <Text size="sm" c="dimmed">
                       {noBoards
                         ? "No boards yet"
@@ -205,10 +209,9 @@ export const BoardPage = () => {
               </Paper>
 
               <Paper withBorder radius="xl" p="lg">
-                <Title order={4}>Quick Notes</Title>
+                <Title order={4}>{BOARD_QUICK_NOTES}</Title>
                 <Text size="sm" c="dimmed" mt="xs">
-                  Keep an eye on project health here. You can use this space
-                  later for announcements, deadlines, or team updates.
+                  {BOARD_ANNOUNCEMENTS}
                 </Text>
               </Paper>
             </Stack>

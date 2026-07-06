@@ -1,5 +1,7 @@
 import { pool } from "../db/db.js";
 import { broadcastBoard } from "../websockets/boards.js";
+import { prisma } from "../db/prisma.js";
+import { formatGetColumns } from "../transformers/column.js";
 
 export const addColumn = async (req, res) => {
   const { id: boardId } = req.params;
@@ -123,22 +125,18 @@ export const getBoardColumns = async (req, res) => {
         error: "board_id is required",
       });
     }
-    const result = await pool.query(
-      'SELECT * FROM "columns" WHERE board_id = $1',
-      [board_id],
-    );
-
-    for (let i = 0; i < result.rows.length; i++) {
-      const cardsResult = await pool.query(
-        "SELECT * FROM cards WHERE column_id = $1",
-        [result.rows[i].id],
-      );
-      result.rows[i].cards = cardsResult.rows;
-    }
+    const result = await prisma.columns.findMany({
+      where: {
+        board_id: board_id,
+      },
+      include: {
+        cards: true,
+      },
+    });
 
     return res.json({
       message: "Columns retrieved successfully",
-      columns: result.rows,
+      columns: formatGetColumns(result),
     });
   } catch (error) {
     console.error("Error retrieving columns:", error);

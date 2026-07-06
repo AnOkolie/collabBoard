@@ -21,12 +21,20 @@ import {
   EXPORT_DATA_BUTTON_TEXT,
   PROJECT_HEADER_TEXT,
 } from "../../constants/string";
-import { useAuthStore } from "../../zustand/authStore/useAuthStore";
+
 import { useSocket } from "../../context/SocketContext";
 import { useEffect } from "react";
 import { OnlineUsers } from "../../types/user";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useColumnStore } from "../../zustand/columnStore/useColumnStore";
+import {
+  BOARD_HEADER_ACTIVITY_BUTTON,
+  BOARD_HEADER_CHANNEL_BUTTON,
+  BOARD_HEADER_DESCRIPTION_TEXT,
+  BOARD_HEADER_MEMBERS_BUTTON,
+  BOARD_HEADER_SETTINGS_BUTTON,
+} from "../../utilities/string";
 import { useBoardStore } from "../../zustand/useBoardStore/useBoardStore";
 type BoardHeaderProps = {
   onOpenMembers: () => void;
@@ -39,12 +47,14 @@ export const BoardHeader = ({
 }: BoardHeaderProps) => {
   const [onlineUsers, setOnlineUsers] = useState<OnlineUsers[]>([]);
   const { lastJsonMessage } = useSocket();
-  const { boardId } = useBoardStore();
+  const { boardId } = useColumnStore();
   const navigate = useNavigate();
   const navigateToConversation = (boardId: string) => {
     if (!boardId) return;
+
     navigate(`/messages/${boardId}`);
   };
+  const { currBoard } = useBoardStore();
   useEffect(() => {
     if (!lastJsonMessage) return;
     const { type } = lastJsonMessage;
@@ -95,35 +105,35 @@ export const BoardHeader = ({
               {">"}
             </Text>
             <Text size="sm" c="dimmed">
-              {PROJECT_HEADER_TEXT}
+              {currBoard?.title ?? PROJECT_HEADER_TEXT}
             </Text>
           </Group>
 
           <Title order={2}>Project Board</Title>
           <Text c="dimmed" mt={6}>
-            Organize tasks, move work across columns, and keep progress visible.
+            {BOARD_HEADER_DESCRIPTION_TEXT}
           </Text>
         </div>
         <Group gap="sm">
           <Button variant="default" leftSection={<IconSettings size={16} />}>
-            Settings
+            {BOARD_HEADER_SETTINGS_BUTTON}
           </Button>
           <Button variant="default" leftSection={<IconGitFork size={16} />}>
-            Activity
+            {BOARD_HEADER_ACTIVITY_BUTTON}
           </Button>
           <Button
             variant="default"
             leftSection={<IconUser size={16} />}
             onClick={onOpenMembers}
           >
-            Members
+            {BOARD_HEADER_MEMBERS_BUTTON}
           </Button>
           <Button
             variant="default"
             leftSection={<IconMessage size={16} />}
             onClick={() => navigateToConversation(boardId)}
           >
-            Channel
+            {BOARD_HEADER_CHANNEL_BUTTON}
           </Button>
           <Button leftSection={<IconUpload size={16} />}>
             {EXPORT_DATA_BUTTON_TEXT}

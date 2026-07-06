@@ -1,10 +1,17 @@
-import { useDraggable } from "@dnd-kit/core";
+import {
+  useDraggable,
+  useSensor,
+  useSensors,
+  PointerSensor,
+  DndContext,
+} from "@dnd-kit/core";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { Card } from "@mantine/core";
+import { ActionIcon, Card, Group } from "@mantine/core";
 import { CardType, ColumnType } from "~/types/columns";
 import { Text } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
+import { IconGripVertical } from "@tabler/icons-react";
 export const TaskCard = ({ card }: { card: CardType }) => {
   const { attributes, listeners, setNodeRef, transform, transition } =
     useSortable({ id: card.id });
@@ -37,6 +44,13 @@ export const DraggableCard = ({
   card: CardType;
   onClick: () => void;
 }) => {
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 10, // Requires moving 5px before drag begins, allowing click to fire
+      },
+    }),
+  );
   const { attributes, listeners, setNodeRef, transform, isDragging } =
     useDraggable({
       id: card.id,
@@ -54,17 +68,23 @@ export const DraggableCard = ({
   const [cardDetailsOpened, cardDetailsHandlers] = useDisclosure(false);
 
   return (
-    <Card
-      ref={setNodeRef}
-      withBorder
-      radius="md"
-      p="sm"
-      style={style}
-      {...listeners}
-      {...attributes}
-      onClick={onClick}
-    >
-      <Text>{card.title}</Text>
-    </Card>
+    <DndContext sensors={sensors}>
+      <Card
+        ref={setNodeRef}
+        withBorder
+        radius="md"
+        p="sm"
+        style={style}
+        onClick={onClick}
+      >
+        <Group justify="space-between">
+          <Text>{card.title}</Text>
+
+          <ActionIcon {...listeners} {...attributes}>
+            <IconGripVertical />
+          </ActionIcon>
+        </Group>
+      </Card>
+    </DndContext>
   );
 };

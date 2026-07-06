@@ -1,6 +1,6 @@
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Group, Text } from "@mantine/core";
 
 export const ProductionDatePicker = () => {
@@ -8,7 +8,7 @@ export const ProductionDatePicker = () => {
 
   return (
     <Group m={"md"}>
-      <Text>Task Due date</Text>
+      {/* <Text>Task Due date</Text> */}
       <DatePicker
         selected={startDate}
         onChange={(date: Date | null) => {

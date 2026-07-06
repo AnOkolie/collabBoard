@@ -49,34 +49,36 @@ export const addCards = async (req, res) => {
   }
 };
 
-export const updateCards = async (req, res) => {
-  const { id: cardId } = req.params;
-  const { content, column_id } = req.body;
+export const updateCards = async (card, board_id) => {
+  if (!card || !board_id) return { error: "Misiing required fields" };
+  const { id } = card;
+  if (!id) return { error: "Misiing required fields" };
   try {
-    const result = await pool.query(
-      "UPDATE cards SET content = $1, column_id = $2 WHERE id = $3 RETURNING *",
-      [content, column_id, cardId],
-    );
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: "Card not found" });
-    }
-    const board = await pool.query(
-      "SELECT board_id FROM columns where id = $1",
-      [column_id],
-    );
-    const board_id = board.rows[0].board_id;
-    const message = {
-      type: "card:updated",
-      payload: {
-        boardId: board_id,
-        card: result.rows[0],
+    const updatedCard = await prisma.cards.update({
+      where: {
+        id: id,
       },
-    };
-    broadcastBoard(board_id, message);
-    res.json({ message: "Card updated successfully", card: result.rows[0] });
+      data: {
+        updated_at: new Date(),
+        content: card.content,
+        state: card.state,
+        title: card.title,
+        ...(card.assignee !== "" && { assignee: card.assignee }),
+      },
+    });
+    const members = await prisma.boards.findFirst({
+      where: {
+        id: board_id,
+      },
+      select: {
+        board_members: true,
+      },
+    });
+    if (!updatedCard) return { error: "Error updating card" };
+    return { message: "Card updated", data: updatedCard, members };
   } catch (error) {
     console.error("Error updating card:", error);
-    res.status(500).json({ error: "Internal server error" });
+    return { error: "Internal server error" };
   }
 };
 
@@ -129,7 +131,11 @@ export const getCard = async (req, res) => {
 export const moveCard = async (req, res) => {
   try {
     const { id } = req.params;
-    const { column_id: columnId, board_id: boardId } = req.body;
+    const {
+      column_id: columnId,
+      board_id: boardId,
+      user_id: userId,
+    } = req.body;
 
     await pool.query("BEGIN");
     const fromColumn = await pool.query(
@@ -146,6 +152,7 @@ export const moveCard = async (req, res) => {
     const message = {
       type: "card:moved",
       payload: {
+        userId: userId,
         boardId: boardId,
         cardId: id,
         fromColumnId: fromColumnId,

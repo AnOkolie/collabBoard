@@ -14,6 +14,7 @@ import { BoardType } from "../../types/boards";
 import { CREATE_BOARD_HEADER, PROJECTS_TEXT } from "../../constants/string";
 import { useBoardStore } from "../../zustand/useBoardStore/useBoardStore";
 import { useMessageStore } from "../../zustand/messageStore/useMessageStore";
+import { BOARDS_CREATE_BOARD, BOARDS_NO_BOARDS } from "../../utilities/string";
 
 type BoardsGridProps = {
   rows: BoardType[];
@@ -45,7 +46,7 @@ export const BoardsGrid = ({
   onOpenBoard,
   onOpenBoardActions,
 }: BoardsGridProps) => {
-  const { setBoardId } = useBoardStore();
+  const { setBoardId, setCurrBoard } = useBoardStore();
   const { setCurrentConversation } = useMessageStore();
   return (
     <Paper withBorder radius="md" p="md">
@@ -66,10 +67,10 @@ export const BoardsGrid = ({
         <Paper withBorder radius="lg" p="xl">
           <Stack align="center" gap="sm">
             <Text size="lg" fw={700}>
-              No boards yet
+              {BOARDS_NO_BOARDS}
             </Text>
             <Text c="dimmed" ta="center">
-              Create your first board to get started.
+              {BOARDS_CREATE_BOARD}
             </Text>
             <Button onClick={onCreateBoard}>{CREATE_BOARD_HEADER}</Button>
           </Stack>
@@ -84,6 +85,7 @@ export const BoardsGrid = ({
                 p="md"
                 style={{ cursor: "pointer" }}
                 onClick={() => {
+                  setCurrBoard(row);
                   setBoardId(row.id);
                   setCurrentConversation(row.conversationId);
                   onOpenBoard(`/board/${row.id}`);

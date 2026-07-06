@@ -2,7 +2,6 @@ export const formatGetBoard = (boards) => {
   if (!boards) return;
   try {
     const boardList = boards.map((board) => {
-      console.log("id", board.id);
       return {
         id: board.id,
         title: board.title,

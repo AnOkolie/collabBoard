@@ -26,6 +26,7 @@ import {
   dropFriendRequest,
 } from "./friends.js";
 import { broadcastMessage, broadcastTypingIcon } from "./messages.js";
+import { updateCardDetails } from "./card.js";
 
 const userSocketMap = new Map();
 
@@ -60,7 +61,7 @@ export const webSocketSetup = () => {
     ws.on("message", async (message) => {
       try {
         const data = JSON.parse(message);
-        console.log("Received", data);
+        console.log("received:", data);
         const { type } = data;
         if (type === "friend-request:sent") {
           const { user_id, friend_id } = data;
@@ -94,6 +95,9 @@ export const webSocketSetup = () => {
             payload.sender_id,
             type,
           );
+        } else if (type === "card:update") {
+          const { boardId, card } = data.payload;
+          updateCardDetails(boardId, card, ws);
         }
       } catch (err) {
         console.log("Message err: ", err);

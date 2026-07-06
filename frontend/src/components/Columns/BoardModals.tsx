@@ -24,6 +24,7 @@ import { useState } from "react";
 import { useAuthStore } from "../../zustand/authStore/useAuthStore";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import { CardDetails, CardDetailsTitle } from "../Cards/CardDetails";
 
 type CardType = ColumnType["cards"][number];
 
@@ -168,18 +169,18 @@ export const BoardModals = ({
       <Modal
         opened={cardDetailsOpened}
         onClose={cardDetailsHandlers.close}
-        title="Card Details"
+        size="lg"
         centered
+        radius="md"
+        title={<CardDetailsTitle />}
       >
         {selectedCard && (
-          <Stack gap="sm">
-            <Title order={4}>{selectedCard.title}</Title>
-            <Text>{selectedCard.content}</Text>
-            <Text size="sm" c="dimmed">
-              Updated: {formatDate(selectedCard.updated_at)}
-            </Text>
-            <Text size="sm">{selectedCard.state || "No state"}</Text>
-          </Stack>
+          <CardDetails
+            selectedCard={selectedCard}
+            members={boardMembers}
+            boardId={boardId}
+            close={cardDetailsHandlers.close}
+          />
         )}
       </Modal>
 

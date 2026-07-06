@@ -125,21 +125,17 @@ export const updateBoardInvite = async (board_id, user_id, host_id, state) => {
   }
 };
 
-export const broadcastBoard = (board_id, payload) => {
-  const subscribers = getBoardRoom(board_id);
+export const broadcastBoard = (boardId, payload) => {
+  const room = getBoardRoom(boardId);
 
-  if (!subscribers) return;
+  if (!room) return;
 
   const message = JSON.stringify(payload);
 
-  for (const [id, set] of subscribers) {
-    for (const ws of set) {
+  for (const sockets of room.values()) {
+    for (const ws of sockets) {
       if (ws.readyState === ws.OPEN) {
-        try {
-          ws.send(message);
-        } catch (err) {
-          console.error("Socket send failed:", err);
-        }
+        ws.send(message);
       }
     }
   }
@@ -147,25 +143,29 @@ export const broadcastBoard = (board_id, payload) => {
 
 export const joinBoard = async (payload, ws) => {
   ws.boards.add(payload.board_id);
-  const count = await newConn(payload.board_id, ws.user.id);
-  await joinResponse({
-    board_id: payload.board_id,
-    type: "user-joined:init",
-    ws,
-  });
-  await publisherBoardUpdate(
-    {
+  try {
+    await joinRoom(payload.board_id, ws);
+    const count = await newConn(payload.board_id, ws.user.id);
+    await joinResponse({
       board_id: payload.board_id,
-      type: "user:joined",
-      payload: {
-        id: ws.user.id,
-        username: ws.user.username,
-        profilepic: ws.user.profilepic,
+      type: "user-joined:init",
+      ws,
+    });
+    await publisherBoardUpdate(
+      {
+        board_id: payload.board_id,
+        type: "user:joined",
+        payload: {
+          id: ws.user.id,
+          username: ws.user.username,
+          profilepic: ws.user.profilepic,
+        },
       },
-    },
-    count,
-  );
-  await joinRoom(payload.board_id, ws);
+      count,
+    );
+  } catch (err) {
+    console.error("Error joining board", err);
+  }
 };
 
 export const leaveBoard = async (payload, ws) => {

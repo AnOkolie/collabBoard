@@ -31,6 +31,7 @@ export type IncomingBoardEvent =
   | {
       type: "card:moved";
       payload: {
+        userId: string;
         boardId: string;
         cardId: string;
         fromColumnId: string;
@@ -79,6 +80,12 @@ export type IncomingBoardEvent =
   | {
       type: "column:deleted";
       payload: ColumnType;
+    }
+  | {
+      type: "card:updated";
+      payload: {
+        card: CardType;
+      };
     }
   | {
       type: "online-users:update";

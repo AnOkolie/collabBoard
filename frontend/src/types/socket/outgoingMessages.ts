@@ -77,7 +77,7 @@ export type OutgoingMessage =
       };
     }
   | {
-      type: "card:updated";
+      type: "card:update";
       payload: {
         boardId: string;
         card: CardType;

@@ -1,9 +1,11 @@
-import { useMemo, useRef, useEffect } from "react";
+import { useMemo, useRef, useEffect, useCallback } from "react";
 import { IncomingBoardEvent } from "../types/socket/incomingMessages";
 import { useAuthStore } from "../zustand/authStore/useAuthStore";
 import { displayNotifications } from "../utilities/notification/displayNotifications";
 import { Box, Button, Group } from "@mantine/core";
-
+import { BoardType } from "../types/boards";
+import { useBoardStore } from "../zustand/useBoardStore/useBoardStore";
+import { BoardInvites } from "~/components/ActivityCenter/BoardInvites";
 export const useTypedBoardMessage = (lastJsonMessage: any) => {
   return useMemo(() => {
     if (
@@ -79,4 +81,12 @@ export const useBoardInviteHandler = (
         break;
     }
   }, [message]);
+
+  const updateCurrentBoard = useCallback((board: BoardType) => {
+    const { setCurrBoard } = useBoardStore();
+    setCurrBoard(board);
+  }, []);
+  return {
+    updateCurrentBoard,
+  };
 };

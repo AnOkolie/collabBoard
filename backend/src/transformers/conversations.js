@@ -91,7 +91,6 @@ export const formatUserConversations = (conversations) => {
 
 export const formatConversation = (conversation, user_id) => {
   if (!conversation) return null;
-  console.log("user name", conversation.conversation_members[0].users.username);
   return {
     id: conversation.id,
     type: conversation.type,

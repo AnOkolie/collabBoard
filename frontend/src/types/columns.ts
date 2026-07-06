@@ -5,7 +5,7 @@ export type ColumnResponse = {
 export type ColumnType = {
   id: string;
   title: string;
-  board_id: string;
+  boardId: string;
   status: "In Progress" | "Completed" | "To Do";
   createdAt: Date;
   cards: CardType[];
@@ -13,9 +13,11 @@ export type ColumnType = {
 
 export type CardType = {
   id: string;
-  column_id: string;
+  columnId: string;
   content: string;
-  updated_at: Date;
+  updatedAt: Date;
   state: string | null;
   title: string;
+  dueDate: Date;
+  assignee: string;
 };

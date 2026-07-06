@@ -79,10 +79,10 @@ export const request = async <Type>(
 
         return request<Type>(method, path, headers, body, false);
       }
-      throw new Error(`HTTP error! Status: ${res.status}`);
     }
     return { error: { status: res.status, message: await res.json() } };
   } catch (error) {
+    console.error("request error", error);
     return { error: { status: 500, message: "Internal server error catch" } };
   }
 };

@@ -1,6 +1,6 @@
 import {
+  ActionIcon,
   Avatar,
-  AvatarGroup,
   Button,
   Group,
   Paper,
@@ -100,7 +100,10 @@ export const BoardHeader = ({
       <Group justify="space-between" align="flex-start">
         <div>
           <Group gap="xs" mb={6}>
-            <IconHome size={16} />
+            <ActionIcon onClick={() => navigate("/")} variant="transparent">
+              <IconHome size={16} />
+            </ActionIcon>
+
             <Text size="sm" c="dimmed">
               {">"}
             </Text>
@@ -109,7 +112,7 @@ export const BoardHeader = ({
             </Text>
           </Group>
 
-          <Title order={2}>Project Board</Title>
+          <Title order={2}>{currBoard?.title ?? PROJECT_HEADER_TEXT}</Title>
           <Text c="dimmed" mt={6}>
             {BOARD_HEADER_DESCRIPTION_TEXT}
           </Text>

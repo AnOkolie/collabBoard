@@ -8,11 +8,11 @@ export const formatGetColumns = (columns) => {
         cards: column.cards.map((card) => {
           return {
             id: card.id,
-            columnId: card.columnId,
+            columnId: card.column_id,
             content: card.content,
             updatedAt: card.updated_at,
             dueDate: card.due_date,
-            state: column.title,
+            state: card.state,
             title: card.title,
             createdAt: card.created_at,
           };

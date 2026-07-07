@@ -1,7 +1,5 @@
-import { ColumnResponse } from "../../types/columns";
 import { getBoardColumns, getBoardMembers } from "../../api/columnview";
 import { LoaderFunctionArgs } from "react-router-dom";
-import { BoardMembers } from "~/types/boards";
 
 export const columnLoader = async ({ params }: LoaderFunctionArgs) => {
   const boardId = params.board_id;

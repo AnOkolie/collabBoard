@@ -29,10 +29,9 @@ export const addCards = async (req, res) => {
         where: { id: boardId },
         data: { updated_at: new Date() },
       });
-
+      await updateBoardProgress(boardId, tx);
       return card;
     });
-    await updateBoardProgress(boardId);
     const message = {
       type: "card:created",
       payload: {
@@ -137,32 +136,47 @@ export const moveCard = async (req, res) => {
       board_id: boardId,
       user_id: userId,
     } = req.body;
-
-    await pool.query("BEGIN");
-    const fromColumn = await pool.query(
-      "SELECT column_id FROM cards where id = $1",
-      [id],
-    );
-    await pool.query(
-      "UPDATE cards SET column_id = $1, updated_at = NOW() WHERE id = $2",
-      [columnId, id],
-    );
-
-    await updateBoardProgress(boardId);
-    const fromColumnId = fromColumn.rows[0].column_id;
-    const message = {
-      type: "card:moved",
-      payload: {
-        userId: userId,
-        boardId: boardId,
-        cardId: id,
-        fromColumnId: fromColumnId,
-        toColumnId: columnId,
-      },
-    };
-    broadcastBoard(boardId, message);
-    res.status(200).json({ message: "Card moved successfully" });
-    await pool.query("COMMIT");
+    const move = await prisma.$transaction(async (tx) => {
+      const fromColumn = await tx.cards.findFirst({
+        where: {
+          id: id,
+        },
+        select: {
+          column_id: true,
+        },
+      });
+      const newState = await tx.columns.findFirst({
+        where: {
+          id: columnId,
+        },
+        select: {
+          title: true,
+        },
+      });
+      await tx.cards.update({
+        where: {
+          id: id,
+        },
+        data: {
+          column_id: columnId,
+          updated_at: new Date(),
+          state: newState.title,
+        },
+      });
+      await updateBoardProgress(boardId, tx);
+      const message = {
+        type: "card:moved",
+        payload: {
+          userId: userId,
+          boardId: boardId,
+          cardId: id,
+          fromColumnId: fromColumn.column_id,
+          toColumnId: columnId,
+        },
+      };
+      broadcastBoard(boardId, message);
+      return res.status(200).json({ message: "Card moved successfully" });
+    });
   } catch (error) {
     console.error("Error moving card:", error);
     await pool.query("ROLLBACK");
@@ -170,40 +184,46 @@ export const moveCard = async (req, res) => {
   }
 };
 
-const updateBoardProgress = async (boardId) => {
+const updateBoardProgress = async (boardId, tx) => {
+  if (!boardId) return;
   try {
-    const completedColumnId = await pool.query(
-      "SELECT id from columns where title = 'Completed' and board_id = $1",
-      [boardId],
+    const columns = await tx.columns.findMany({
+      where: {
+        board_id: boardId,
+      },
+      include: {
+        _count: {
+          select: {
+            cards: true,
+          },
+        },
+      },
+    });
+
+    const completedCardsCount =
+      columns.find((col) => col.title === "Completed")?._count.cards ?? 0;
+
+    const totalCardsCount = columns.reduce(
+      (sum, col) => sum + col._count.cards,
+      0,
     );
-    if (completedColumnId.rows.length === 0) {
-      return;
-    }
-    const completedCardsCountResult = await pool.query(
-      "SELECT COUNT(*) FROM cards WHERE column_id = $1",
-      [completedColumnId.rows[0].id],
-    );
-    const totalCardsCountResult = await pool.query(
-      "SELECT COUNT(*) FROM cards c JOIN columns col ON c.column_id = col.id WHERE col.board_id = $1",
-      [boardId],
-    );
-    const completedCardsCount = parseInt(
-      completedCardsCountResult.rows[0].count,
-      10,
-    );
-    const totalCardsCount = parseInt(totalCardsCountResult.rows[0].count, 10);
+
     const progress =
       totalCardsCount > 0 ? (completedCardsCount / totalCardsCount) * 100 : 0;
-    const boardProgress = await pool.query(
-      "UPDATE boards SET progress = $1 WHERE id = $2 RETURNING *",
-      [progress, boardId],
-    );
-    if (boardProgress.rows.length > 0) {
+    const updateProgress = await prisma.boards.update({
+      where: {
+        id: boardId,
+      },
+      data: {
+        progress: progress,
+      },
+    });
+    if (updateProgress) {
       broadcastBoard(
         boardId,
         JSON.stringify({
           type: "board:update",
-          payload: boardProgress.rows[0],
+          payload: updateProgress,
         }),
       );
     }
@@ -213,14 +233,11 @@ const updateBoardProgress = async (boardId) => {
 };
 
 export const getUpcomingTasks = async (req, res) => {
-  console.log("fetching");
   const { user_id } = req.params;
   if (!user_id) {
-    console.log("missing");
     return res.status(400).json({ error: "Missing required fields" });
   }
   try {
-    console.log("workimng");
     const result = await prisma.cards.findMany({
       where: {
         assigned_user: {
@@ -228,7 +245,7 @@ export const getUpcomingTasks = async (req, res) => {
         },
         state: {
           not: {
-            equals: "completed",
+            equals: "Completed",
           },
         },
       },
@@ -263,13 +280,9 @@ export const getUpcomingTasks = async (req, res) => {
       });
       return;
     });
-    for (const [key, value] of boardMap) {
-      console.log(`key: ${key} and value: ${value}`);
-    }
+
     const data = result.map((card) => {
-      console.log(card.column_id);
       const boardId = boardMap.get(card.column_id);
-      console.log("board id is:", boardId);
       return {
         ...card,
         board_id: boardId.id,

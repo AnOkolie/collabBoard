@@ -37,6 +37,7 @@ import { groupMessagesLoader } from "./components/Messages/groupMessagesLoader";
 import { CalendarPage } from "./components/Calendar/CalendarPage";
 import { calendarLoader } from "./components/Calendar/loader";
 import { Dashboard } from "./components/Dashboard/Dashboard";
+import { dashboardLoader } from "./components/Dashboard/loader";
 
 const router = createBrowserRouter([
   {
@@ -97,7 +98,7 @@ const router = createBrowserRouter([
       {
         path: "dashboard",
         element: <Dashboard />,
-        loader: boardLoader,
+        loader: dashboardLoader,
       },
       {
         path: "messages",

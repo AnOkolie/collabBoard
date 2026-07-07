@@ -29,8 +29,17 @@ export const BOARDS_NO_BOARDS = "No Boards yet";
 export const BOARDS_CREATE_BOARD = "Create your first board to get started.";
 
 export const HOME_PAGE_UPCOMING_TASKS = "Upcoming Tasks";
+export const HOME_PAGE_RECENTLY_COMPLETED = "Recently Completed";
 export const HOME_PAGE_NO_UPCOMING_TASKS =
   "You're all caught up. New task notifications will appear here.";
 export const HOME_PAGE_NO_ANNOUNCEMENTS = "No Upcoming Tasks";
 
-export const DASHBOARD_HEADER = "Dashboard";
+export const DASHBOARD_HEADER = "Analytics Dashboard";
+export const DASHBOARD_HERO_TEXT = "Here's whats happening today";
+export const WORKSPACE_OVERVIEW = "Workspace Overview";
+export const DISPLAY_TASKS_NO_TASKS = "No Tasks";
+export const DISPLAY_TASKS_DESCRIPTION = "Everything is up to date.";
+
+// HERO
+export const HERO_NO_TASKS = "🎉 You're all caught up!";
+export const HERO_TACKLE_TASKS = "🚀 Ready to tackle today's work?";

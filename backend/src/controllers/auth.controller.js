@@ -63,7 +63,8 @@ export const register = async (req, res) => {
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
       path: COOKIE_PATH,
     });
     //for cross site cookies, sameSite needs to be turned off
@@ -172,10 +173,11 @@ export const refreshToken = async (req, res) => {
         return res.status(403).json({ message: "Forbidden" });
       }
       const accessToken = generateAccessToken(user.id, user.email);
-      res.json({ accessToken });
+      return res.json({ accessToken });
     });
   } catch (err) {
     console.error("Error generating refresh token");
+    return res.status(500).json({ error: "Internal server error" });
   }
 };
 
@@ -214,7 +216,7 @@ const emailLogin = async (email, userPassword, req, res) => {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-      maxAge: 2 * 60 * 60 * 1000,
+      maxAge: 7 * 24 * 60 * 60 * 1000,
       path: COOKIE_PATH,
     });
     const { password, ...userWithoutPassword } = user;
@@ -263,7 +265,7 @@ const usernameLogin = async (username, userPassword, req, res) => {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-      maxAge: 2 * 60 * 60 * 1000,
+      maxAge: 7 * 24 * 60 * 60 * 1000,
       path: COOKIE_PATH,
     });
     const { password, ...userWithoutPassword } = user;

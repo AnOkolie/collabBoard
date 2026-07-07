@@ -33,6 +33,10 @@ export const BoardStatsPanel = ({
             sections={[{ value: boardProgress, color: "blue" }]}
             label={<Text ta="center">{boardProgress}%</Text>}
             onClick={() => navigate("dashboard")}
+            style={{
+              cursor: "pointer",
+              transition: "all 150ms ease",
+            }}
           />
         </Flex>
       </Paper>

@@ -1,15 +1,13 @@
 import {
-  AppShell,
   Card,
   Flex,
   Grid,
   Paper,
-  SimpleGrid,
   Stack,
   Text,
   RingProgress,
 } from "@mantine/core";
-import { BOARD_PROJECTS, DASHBOARD_HEADER } from "../../utilities/string";
+import { BOARD_PROJECTS } from "../../utilities/string";
 
 type props = {
   statEntries: [string, number][];
@@ -17,20 +15,25 @@ type props = {
 };
 
 export const WorkspaceInsights = ({ statEntries, boardProgress }: props) => {
-  const standard = ["To Do", "Completed", "In Progress", "Other"];
-  const displayMap = new Map();
+  const standard = new Set(["To Do", "Completed", "In Progress"]);
+
+  const displayEntries: [string, number][] = [];
   let otherCount = 0;
-  const newMap = statEntries
-    .map((entry) => {
-      if (standard.includes(entry[0])) {
-        return entry;
-      } else {
-        if (entry[0] !== "total") otherCount += entry[1];
-      }
-      return entry;
-    })
-    .filter((entry) => standard.includes(entry[0]));
-  newMap.push(["Other", otherCount]);
+
+  for (const [name, count] of statEntries) {
+    if (name === "total") continue;
+
+    if (standard.has(name)) {
+      displayEntries.push([name, count]);
+    } else {
+      otherCount += count;
+    }
+  }
+
+  if (otherCount > 0) {
+    displayEntries.push(["Other", otherCount]);
+  }
+  const progress = Math.max(0, Math.min(boardProgress, 100));
   return (
     <Stack gap="md">
       <Paper withBorder radius="md" p="md">
@@ -38,8 +41,8 @@ export const WorkspaceInsights = ({ statEntries, boardProgress }: props) => {
           <Stack>
             <Text fw={700}>Task Progress</Text>
             <RingProgress
-              sections={[{ value: boardProgress, color: "blue" }]}
-              label={<Text ta="center">{boardProgress}%</Text>}
+              sections={[{ value: progress, color: "blue" }]}
+              label={<Text ta="center">{progress}%</Text>}
             />
           </Stack>
         </Flex>
@@ -49,18 +52,21 @@ export const WorkspaceInsights = ({ statEntries, boardProgress }: props) => {
           </Text>
 
           <Grid>
-            {newMap.map(([key, value]) => (
-              <Grid.Col span={6} key={key}>
-                <Card withBorder radius="md" p="sm">
-                  <Text size="sm" c="dimmed">
-                    {key}
-                  </Text>
-                  <Text size="xl" fw={700}>
-                    {value}
-                  </Text>
-                </Card>
-              </Grid.Col>
-            ))}
+            {displayEntries.map(([key, value]) => {
+              if (key === "Other" && value == 0) return <></>;
+              return (
+                <Grid.Col span={6} key={key}>
+                  <Card withBorder radius="md" p="sm">
+                    <Text size="sm" c="dimmed">
+                      {key}
+                    </Text>
+                    <Text size="xl" fw={700}>
+                      {value}
+                    </Text>
+                  </Card>
+                </Grid.Col>
+              );
+            })}
           </Grid>
         </Paper>
       </Paper>

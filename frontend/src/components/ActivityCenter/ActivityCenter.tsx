@@ -24,6 +24,8 @@ export const ActivityCenter = ({
   useActivityHook();
   const loaderData = useLoaderData();
   const {
+    notifLength,
+    setNotifLength,
     friendActivity,
     boardActivity,
     removeBoardActivity,
@@ -32,15 +34,12 @@ export const ActivityCenter = ({
     setFriendActivity,
   } = useActivityCentreStore();
 
-  const [notifLength, setNotifLength] = useState(0);
   useEffect(() => {
     if (!loaderData) return;
     setBoardActivity(loaderData.notifications.data.boardInvites ?? []);
     setFriendActivity(loaderData.notifications.data.friendRequests ?? []);
-  }, [loaderData, setBoardActivity, setFriendActivity]);
-  useEffect(() => {
     setNotifLength((boardActivity.length ?? 0) + (friendActivity.length ?? 0));
-  }, [notifLength, setNotifLength, boardActivity, friendActivity]);
+  }, [loaderData, setBoardActivity, setFriendActivity]);
 
   return (
     <>

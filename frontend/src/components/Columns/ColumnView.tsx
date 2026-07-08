@@ -19,21 +19,20 @@ import { usePresenceHook } from "../../hooks/usePresenceHook";
 
 type LoaderData = {
   message: string;
-  data: {
-    columns: {
-      message: string;
-      columns: ColumnType[];
-    };
-    members: {
-      data: BoardMembers[];
-    };
+
+  columns: {
+    message: string;
+    columns: ColumnType[];
+  };
+  members: {
+    data: BoardMembers[];
   };
 };
 
 type CardType = ColumnType["cards"][number];
 
 export const ColumnView = () => {
-  const { data } = useLoaderData() as LoaderData;
+  const loaderData = useLoaderData() as LoaderData;
   const actionData = useActionData() as any;
   const [createColumnOpened, createColumnHandlers] = useDisclosure(false);
   const [createCardOpened, createCardHandlers] = useDisclosure(false);
@@ -44,20 +43,17 @@ export const ColumnView = () => {
   const [selectedCard, setSelectedCard] = useState<CardType | null>(null);
 
   const [boardMembers, setBoardMembers] = useState<BoardMembers[]>(
-    data.members.data ?? [],
+    loaderData.members.data ?? [],
   );
 
   const { searchName, setSearchName, usersByName } = useSearchUser(500);
   const { boardId, setBoardId, columns, setColumns } = useColumnStore();
   usePresenceHook();
   useEffect(() => {
-    if (!data) return;
-    setColumns(data.columns.columns ?? []);
-    setBoardMembers(data.members.data ?? []);
-    if (data.columns.columns.length > 0) {
-      setBoardId(data.columns.columns[0].boardId);
-    }
-  }, [data]);
+    if (!loaderData) return;
+    setColumns(loaderData.columns.columns ?? []);
+    setBoardMembers(loaderData.members.data ?? []);
+  }, [loaderData]);
 
   useEffect(() => {
     if (!actionData) return;

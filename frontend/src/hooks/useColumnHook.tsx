@@ -3,6 +3,7 @@ import { useColumnStore } from "../zustand/columnStore/useColumnStore";
 import { useCallback, useEffect } from "react";
 import { moveCard as moveApi } from "../api/card";
 import { useAuthStore } from "../zustand/authStore/useAuthStore";
+import { useBoardStore } from "../zustand/useBoardStore/useBoardStore";
 export const useColumnHook = () => {
   const { sendJsonMessage, lastJsonMessage } = useSocket();
   const {
@@ -16,6 +17,7 @@ export const useColumnHook = () => {
     moveCard,
     rollbackCardMove,
   } = useColumnStore();
+  const { boardId: board_id } = useBoardStore();
   const userId = useAuthStore((s) => s.authUser?.id);
   useEffect(() => {
     if (!lastJsonMessage) return;

@@ -1,3 +1,4 @@
+import { useColumnStore } from "../../zustand/columnStore/useColumnStore";
 import { getBoardColumns, getBoardMembers } from "../../api/columnview";
 import { LoaderFunctionArgs } from "react-router-dom";
 
@@ -10,10 +11,13 @@ export const columnLoader = async ({ params }: LoaderFunctionArgs) => {
     getBoardColumns(boardId),
     getBoardMembers(boardId),
   ]);
+  const setBoardId = useColumnStore.getState().setBoardId;
+  const firstColumn = columns.data?.columns[0];
+  if (firstColumn?.boardId) {
+    setBoardId(firstColumn.boardId);
+  }
   return {
-    data: {
-      columns: columns.data,
-      members: members.data,
-    },
+    columns: columns.data,
+    members: members.data,
   };
 };

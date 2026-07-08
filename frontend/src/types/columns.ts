@@ -1,5 +1,5 @@
 export type ColumnResponse = {
-  data: ColumnType[];
+  columns: ColumnType[];
 };
 
 export type ColumnType = {

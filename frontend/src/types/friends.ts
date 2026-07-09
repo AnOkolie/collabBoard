@@ -4,7 +4,9 @@ export type FriendRequestStructure = {
   message: string;
   requester: {
     username: string;
+    profilepic: string;
   };
+  created_at: string;
 };
 
 export type allFriends = {

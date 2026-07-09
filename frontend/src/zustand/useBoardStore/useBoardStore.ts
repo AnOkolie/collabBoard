@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { BoardType } from "~/types/boards";
+import { BoardType } from "../../types/boards";
 
 type boardStore = {
   boardId: string;

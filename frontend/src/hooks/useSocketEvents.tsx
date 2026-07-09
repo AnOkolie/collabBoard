@@ -17,17 +17,13 @@ export const useSocketEvents = (
   lastJsonMessage: IncomingBoardEvent | null,
   sendJsonMessage: (msg: any) => void,
 ) => {
-  // const { lastJsonMessage, sendJsonMessage } = useSocket();
   const { addMessage, setIsTyping, removeTypinguser, addTypingUser } =
     useMessageStore();
   const requestUserId = useRef<string | null>(null);
   const requestBoardId = useRef<string | null>(null);
-  const {
-    setBoardActivity,
-    setFriendActivity,
-    addBoardActivity,
-    addFriendActivity,
-  } = useActivityCentreStore();
+  const { setBoardActivity, setFriendActivity } = useActivityCentreStore();
+  const addBoardActivity = useActivityCentreStore((s) => s.addBoardActivity);
+  const addFriendActivity = useActivityCentreStore((s) => s.addFriendActivity);
   const addUserBoard = useBoardStore((s) => s.addUserBoard);
 
   const removeUserBoard = useBoardStore((s) => s.removeUserBoard);
@@ -54,7 +50,6 @@ export const useSocketEvents = (
 
   useEffect(() => {
     if (!lastJsonMessage) return;
-
     switch (lastJsonMessage.type) {
       case "message:received":
         if (currentConversation === lastJsonMessage.payload.conversationId) {
@@ -77,7 +72,7 @@ export const useSocketEvents = (
         }
 
         break;
-      case "friend-request:received": {
+      case "friend:request-received": {
         const { user_id } = lastJsonMessage.payload;
         addFriendActivity(lastJsonMessage.payload);
 
@@ -92,7 +87,7 @@ export const useSocketEvents = (
         break;
       }
 
-      case "friend-request:accepted":
+      case "friend:request-accepted":
         displayNotifications("Accepted", lastJsonMessage.message, "green");
         break;
 

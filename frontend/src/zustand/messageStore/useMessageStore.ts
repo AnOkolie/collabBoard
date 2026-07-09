@@ -1,10 +1,6 @@
 import { create } from "zustand";
-import {
-  conversationMessage,
-  fullMessageResponse,
-  messageBody,
-} from "../../types/messages";
-import { userObject } from "~/types/user";
+import { fullMessageResponse } from "../../types/messages";
+import { userObject } from "../../types/user";
 
 type MessageState = {
   messages: fullMessageResponse[];

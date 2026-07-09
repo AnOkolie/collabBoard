@@ -16,6 +16,7 @@ export const getActivity = async (req, res) => {
             username: true,
           },
         },
+        created_at: true,
       },
       where: {
         friend_id: user_id,

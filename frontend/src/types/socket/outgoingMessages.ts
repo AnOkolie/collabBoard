@@ -19,24 +19,24 @@ export type OutgoingMessage =
       type: "ping";
     }
   | {
-      type: "friend-request:sent";
+      type: "friend:request-sent";
       user_id: string;
       friend_id: string;
       message: string;
     }
   | {
-      type: "friend-request:response";
+      type: "friend:request-response";
       user_id: string;
       friend_id: string;
       response: string;
     }
   | {
-      type: "friend-request:unsend";
+      type: "friend:request-unsend";
       user_id: string;
       friend_id: string;
     }
   | {
-      type: "accept-friend-request";
+      type: "friend:request-accept";
       user_id: string;
       friend_id: string;
     }

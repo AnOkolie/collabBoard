@@ -1,15 +1,25 @@
-import { Button, Text, Card, Stack, Flex } from "@mantine/core";
+import {
+  Button,
+  Text,
+  Card,
+  Stack,
+  Flex,
+  CloseButton,
+  Group,
+  Avatar,
+} from "@mantine/core";
 
 import { useAuthStore } from "../../zustand/authStore/useAuthStore";
 
 import { FriendRequestStructure } from "../../types/friends";
 
 import { useFriendSocket } from "../../hooks/useFriendSocket";
-type DisclosureHandlers = {
-  open: () => void;
-  close: () => void;
-  toggle: () => void;
-};
+import {
+  ACCEPT_REQUEST_BTN,
+  FRIEND_REQUEST_TEXT,
+  IGNORE_REQUEST_BTN,
+} from "../../utilities/string";
+import { formatRequestTime } from "../../utilities/format";
 
 type ActivityCenterProps = {
   friendRequests: FriendRequestStructure[];
@@ -21,7 +31,6 @@ export const FriendRequests = ({
   removeFriendRequest,
 }: ActivityCenterProps) => {
   if (!friendRequests) return null;
-  const userId = useAuthStore((s) => s.authUser?.id);
   const { respondToFriendRequest } = useFriendSocket();
   const handleClick = (
     friendId: string,
@@ -32,7 +41,7 @@ export const FriendRequests = ({
     respondToFriendRequest(friendId, response);
     removeFriendRequest(friend);
   };
-
+  console.log(friendRequests);
   return (
     <>
       <Stack gap="sm">
@@ -44,31 +53,39 @@ export const FriendRequests = ({
               radius="md"
               p="sm"
               shadow="xs"
+              pos={"relative"}
+              style={{
+                transition: "background-color 150ms ease",
+                cursor: "pointer",
+              }}
             >
-              <Stack gap={6}>
-                <Text size="sm">{`${notif.requester.username} wants to be your friend`}</Text>
+              <CloseButton pos="absolute" top={2} right={8} />
+              <Group wrap="nowrap" align="center">
+                <Avatar src={notif.requester.profilepic} />
+                <Stack gap={2} style={{ flex: 1 }}>
+                  <Text size="sm">
+                    <Text fw={700} component="span">
+                      {notif.requester.username}
+                    </Text>{" "}
+                    {FRIEND_REQUEST_TEXT}
+                    <Text c="dimmed">
+                      {formatRequestTime(new Date(notif.created_at))}
+                    </Text>
+                  </Text>
+                </Stack>
 
-                <Flex justify="flex-end" gap="xs">
-                  <Button
-                    size="xs"
-                    color="green"
-                    onClick={() =>
-                      handleClick(notif.user_id, "accepted", notif)
-                    }
-                  >
-                    Accept
-                  </Button>
-
+                <Group>
+                  <Button size="xs">{ACCEPT_REQUEST_BTN}</Button>
                   <Button
                     size="xs"
                     variant="light"
-                    color="red"
+                    color="gray"
                     onClick={() => handleClick(notif.user_id, "decline", notif)}
                   >
-                    Decline
+                    {IGNORE_REQUEST_BTN}
                   </Button>
-                </Flex>
-              </Stack>
+                </Group>
+              </Group>
             </Card>
           ))}
       </Stack>

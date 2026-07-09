@@ -45,7 +45,7 @@ export const UserSearchButton = ({
         break;
       case "unsend":
         sendJsonMessage({
-          type: `friend-request:${messageType}`,
+          type: `friend:request-${messageType}`,
           user_id: userId,
           friend_id: user.id,
         });
@@ -63,7 +63,7 @@ export const UserSearchButton = ({
     if (!lastJsonMessage) return;
     const { type } = lastJsonMessage;
     switch (type) {
-      case "friend-request:removed": {
+      case "friend:request-removed": {
         const { message } = lastJsonMessage;
         displayNotifications("Friend Request", message, "green");
       }
@@ -100,20 +100,22 @@ export const UserSearchButton = ({
       } else {
         return (
           <>
-            <Button
-              variant="outline"
-              c={"green"}
-              onClick={() => handleClick("response", "accepted")}
-            >
-              <IconUserPlus size={size} />
-            </Button>
-            <Button
-              variant="outline"
-              c={"red"}
-              onClick={() => handleClick("response", "decline")}
-            >
-              <IconUserMinus size={size} />
-            </Button>
+            <Flex justify="flex-end" gap={"sm"}>
+              <Button
+                variant="outline"
+                c={"green"}
+                onClick={() => handleClick("response", "accepted")}
+              >
+                <IconUserPlus size={size} />
+              </Button>
+              <Button
+                variant="outline"
+                c={"red"}
+                onClick={() => handleClick("response", "decline")}
+              >
+                <IconUserMinus size={size} />
+              </Button>
+            </Flex>
           </>
         );
       }

@@ -9,7 +9,6 @@ import {
   TextInput,
   Text,
   Input,
-  FileInput,
   Stack,
 } from "@mantine/core";
 import { useAuthStore } from "../../zustand/authStore/useAuthStore";
@@ -18,6 +17,19 @@ import { Form, useActionData, useSubmit } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { SIGN_UP_RULE_1 } from "../../constants/string";
 import { IconPencil } from "@tabler/icons-react";
+import { displayNotifications } from "../../utilities/notification/displayNotifications";
+import {
+  CHANGE_PASSWORD,
+  CONFIRM_PASSWORD_CHANGE,
+  DELETE_ACCOUNT_BTN_TEXT,
+  FAILED_PROFILE_UPDATE_TEXT,
+  FAILED_PROFILE_UPDATE_THEME,
+  PROFILE_UPDATE,
+  SUCCESSFUL_PROFILE_UPDATE_TEXT,
+  SUCCESSFUL_PROFILE_UPDATE_THEME,
+  UPDATE_PROFILE_BTN_TEXT,
+  UPDATE_PROFILE_IMAGE,
+} from "../../utilities/string";
 
 export const UserProfile = () => {
   const authUser = useAuthStore((s) => s.authUser);
@@ -34,6 +46,7 @@ export const UserProfile = () => {
   const [preview, setPreview] = useState<string | null>(profilepic || null);
   const [imgFile, setImgFile] = useState<File | null>(null);
   const [includePassword, setIncludePassword] = useState(false);
+  const [isUpdated, setIsUpdated] = useState(false);
 
   const submit = useSubmit();
   const actionData = useActionData() as any;
@@ -76,6 +89,22 @@ export const UserProfile = () => {
     submit(formData, { method: "post", encType: "multipart/form-data" });
   };
 
+  useEffect(() => {
+    if (!actionData) return;
+    if (actionData.data) {
+      displayNotifications(
+        `${PROFILE_UPDATE} ${SUCCESSFUL_PROFILE_UPDATE_TEXT}`,
+        actionData.data.message,
+        SUCCESSFUL_PROFILE_UPDATE_THEME,
+      );
+    } else {
+      displayNotifications(
+        `${PROFILE_UPDATE} ${FAILED_PROFILE_UPDATE_TEXT}`,
+        actionData.error.message,
+        FAILED_PROFILE_UPDATE_THEME,
+      );
+    }
+  }, [actionData]);
   const handleImagePreview = (file: File | null) => {
     if (!file) {
       setImgFile(null);
@@ -94,6 +123,7 @@ export const UserProfile = () => {
   const handlePasswordConfirm = () => {
     if (!rules.matchesLen || !rules.passwordChangesMatch) return;
     setIncludePassword(true);
+    setIsUpdated(true);
     passwordChangeHandlers.close();
   };
 
@@ -129,8 +159,12 @@ export const UserProfile = () => {
               : "Passwords do not match"}
           </Text>
 
-          <Button mt="md" onClick={handlePasswordConfirm}>
-            Confirm Password Change
+          <Button
+            mt="md"
+            disabled={!rules.passwordChangesMatch || !rules.matchesLen}
+            onClick={handlePasswordConfirm}
+          >
+            {CONFIRM_PASSWORD_CHANGE}
           </Button>
         </Stack>
       </Modal>
@@ -162,7 +196,7 @@ export const UserProfile = () => {
                   variant="outline"
                   leftSection={<IconPencil />}
                 >
-                  Change picture
+                  {UPDATE_PROFILE_IMAGE}
                   <input
                     hidden
                     type="file"
@@ -179,25 +213,32 @@ export const UserProfile = () => {
                 label="Name"
                 name="name"
                 value={userName}
-                onChange={(e) => setUserName(e.currentTarget.value)}
+                onChange={(e) => {
+                  setUserName(e.currentTarget.value);
+                  setIsUpdated(true);
+                }}
               />
 
               <TextInput
                 label="Email"
                 name="email"
                 value={userEmail}
-                onChange={(e) => setUserEmail(e.currentTarget.value)}
+                onChange={(e) => {
+                  setUserEmail(e.currentTarget.value);
+                  setIsUpdated(true);
+                }}
               />
 
               <Flex gap="md">
                 <Button variant="outline" onClick={passwordChangeHandlers.open}>
-                  Change Password
+                  {CHANGE_PASSWORD}
                 </Button>
               </Flex>
 
               <Flex gap="md" justify="flex-end">
                 <Button
                   mt="md"
+                  disabled={!isUpdated}
                   name="intent"
                   value="update-profile"
                   type="submit"
@@ -205,7 +246,7 @@ export const UserProfile = () => {
                     setIntent("update-profile");
                   }}
                 >
-                  Update Profile
+                  {UPDATE_PROFILE_BTN_TEXT}
                 </Button>
 
                 <Button
@@ -218,7 +259,7 @@ export const UserProfile = () => {
                     setIntent("delete-account");
                   }}
                 >
-                  Delete Account
+                  {DELETE_ACCOUNT_BTN_TEXT}
                 </Button>
               </Flex>
             </Stack>

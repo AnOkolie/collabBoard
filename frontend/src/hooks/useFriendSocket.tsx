@@ -13,7 +13,7 @@ export const useFriendSocket = () => {
       if (!currentUserId || !friendId || !isConnected) return;
 
       sendJsonMessage({
-        type: "friend-request:sent",
+        type: "friend:request-sent",
         user_id: currentUserId,
         friend_id: friendId,
         message: "Lets be friends please",
@@ -26,7 +26,7 @@ export const useFriendSocket = () => {
     (requesterId: string, response: "accepted" | "decline") => {
       if (!currentUserId || !requesterId || !isConnected) return;
       sendJsonMessage({
-        type: `friend-request:response`,
+        type: `friend:request-response`,
         user_id: requesterId,
         friend_id: currentUserId,
         response,

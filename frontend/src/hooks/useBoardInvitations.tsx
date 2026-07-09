@@ -5,7 +5,6 @@ import { displayNotifications } from "../utilities/notification/displayNotificat
 import { Box, Button, Group } from "@mantine/core";
 import { BoardType } from "../types/boards";
 import { useBoardStore } from "../zustand/useBoardStore/useBoardStore";
-import { BoardInvites } from "~/components/ActivityCenter/BoardInvites";
 export const useTypedBoardMessage = (lastJsonMessage: any) => {
   return useMemo(() => {
     if (

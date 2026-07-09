@@ -24,16 +24,16 @@ export const ActivityCenter = ({
   useActivityHook();
   const loaderData = useLoaderData();
   const {
-    notifLength,
     setNotifLength,
-    friendActivity,
-    boardActivity,
     removeBoardActivity,
     removeFriendActivity,
     setBoardActivity,
     setFriendActivity,
   } = useActivityCentreStore();
 
+  const boardActivity = useActivityCentreStore((s) => s.boardActivity);
+  const friendActivity = useActivityCentreStore((s) => s.friendActivity);
+  const notifLength = useActivityCentreStore((s) => s.notifLength);
   useEffect(() => {
     if (!loaderData) return;
     setBoardActivity(loaderData.notifications.data.boardInvites ?? []);

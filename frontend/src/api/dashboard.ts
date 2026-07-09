@@ -1,4 +1,4 @@
-import { dashboardStats } from "~/types/dashboard";
+import { dashboardStats } from "../types/dashboard";
 import { tasks } from "../types/cards";
 import { RequestMethods, RequestResolve } from "../types/requests";
 import { request } from "../utilities/requests";

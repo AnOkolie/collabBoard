@@ -117,8 +117,10 @@ export const rejectFriendship = async (user_id, friend_id) => {
   try {
     const result = await prisma.friendship_requests.delete({
       where: {
-        user_id: user_id,
-        friend_id: friend_id,
+        requestMembers: {
+          user_id,
+          friend_id,
+        },
       },
     });
     if (!result) {
@@ -135,39 +137,31 @@ export const dropFriendship = async (user_id, friend_id) => {
   if (!user_id || !friend_id) {
     return { error: "Missing required fields" };
   }
-  try {
-    const friendship = await prisma.friendship_requests.findFirst({
-      where: {
-        user_id: user_id,
-        friend_id: friend_id,
-      },
-      select: {
-        user_id: true,
-        friend_id: true,
-      },
-    });
-    if (!friendship) {
-      return { error: "No friendship object exists" };
-    }
 
-    const recipient = await prisma.users.findUnique({
-      where: { id: friendship.friend_id },
-      select: { username: true },
-    });
-    const res = await prisma.friendship_requests.delete({
+  try {
+    const friendship = await prisma.friendship_requests.delete({
       where: {
-        user_id_friend_id: {
-          user_id: user_id,
-          friend_id: friend_id,
+        requestMembers: {
+          user_id,
+          friend_id,
         },
       },
     });
-    if (!res) {
-      return { error: "No friendship object exists" };
-    }
-    return { message: `You've unfollowed user ${recipient.username}` };
+
+    const recipient = await prisma.users.findUnique({
+      where: {
+        id: friendship.friend_id,
+      },
+      select: {
+        username: true,
+      },
+    });
+
+    return {
+      message: `You've unfollowed ${recipient?.username ?? "the user"}`,
+    };
   } catch (err) {
-    console.error("Error removing pending friendhsip", err);
+    console.error("Error removing pending friendship", err);
     return { error: "Internal server error" };
   }
 };

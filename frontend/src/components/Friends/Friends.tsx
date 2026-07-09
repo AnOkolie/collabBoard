@@ -1,21 +1,15 @@
-import {
-  Container,
-  Stack,
-  Grid,
-  Flex,
-  Card,
-  Paper,
-  Avatar,
-  Group,
-  Input,
-  Text,
-} from "@mantine/core";
+import { Container, Stack, Title, Paper, Avatar, Text } from "@mantine/core";
 import { useLoaderData } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { allFriends } from "../../types/friends";
-import { UserSearchButton } from "../SearchUser/UserSearchButton";
-import { useFriendSocket } from "../../hooks/useFriendSocket";
-
+import { FriendCard } from "./FriendCard";
+import { FriendRequestCard } from "./FriendRequestCard";
+import { UserSearch } from "./UserSearch";
+import {
+  FRIENDS_PENDING_REQUEST_TEXT,
+  FRIENDS_TEXT,
+  FIND_FRIENDS_TEXT,
+} from "../../utilities/string";
 type friendsLoader = {
   message: string;
   friends: allFriends[];
@@ -23,60 +17,60 @@ type friendsLoader = {
 
 export const Friends = () => {
   const loaderData = useLoaderData() as friendsLoader;
-  const [friends, setFriends] = useState<allFriends[]>(
+  const [allFriends, setAllFriends] = useState<allFriends[]>(
     loaderData.friends ?? [],
   );
-  const { sendFriendRequest } = useFriendSocket();
+
+  const [friendsCount, setFriendsCount] = useState(0);
+
   useEffect(() => {
     if (!loaderData) return;
-    setFriends(loaderData.friends);
+    setAllFriends(loaderData.friends);
+    setFriendsCount(allFriends.length);
   }, [loaderData]);
-
+  const requests: allFriends[] = allFriends.filter(
+    (friend) => friend.friendshipStatus === "pending",
+  );
+  const friends = allFriends.filter(
+    (friend) => friend.friendshipStatus === "friends",
+  );
   return (
-    <Container>
-      <Grid>
-        <Grid.Col span={{ base: 12, md: 11 }}>
-          <Stack>
-            {friends.length === 0 ? (
-              <>
-                <Flex
-                  h="70vh"
-                  w="120vh"
-                  align="center"
-                  justify="center"
-                  dir="column"
-                >
-                  <Text>Search up users to make new friends...</Text>
-                </Flex>
-              </>
-            ) : (
-              friends.map((friend) => (
-                <Paper key={friend.id} p="sm" withBorder radius="md">
-                  <Group>
-                    <Input
-                      type="hidden"
-                      value={friend.id}
-                      name="friend-user-id"
-                    />
-                    <Avatar src={friend.profilepic || undefined} />
+    <Container size="md">
+      {friendsCount === 0 ? (
+        <Stack align="center" justify="center" h={400}>
+          <Avatar size="xl" />
+          <Text fw={600}>No friends yet</Text>
+          <Text c="dimmed">Search for people and start connecting</Text>
+        </Stack>
+      ) : (
+        <Stack gap="xl">
+          <Paper withBorder radius="md" p="md">
+            <Title order={3}>{FRIENDS_PENDING_REQUEST_TEXT}</Title>
 
-                    <Text fw={600}>{friend.username}</Text>
+            <Stack mt="md">
+              {requests.map((request) => (
+                <FriendRequestCard request={request} />
+              ))}
+            </Stack>
+          </Paper>
 
-                    <Flex ml="auto" gap="md">
-                      <UserSearchButton
-                        user={friend}
-                        onSendRequest={() => sendFriendRequest(friend.id)}
-                        size={14}
-                        conversationId={friend.conversationId}
-                      />
-                    </Flex>
-                  </Group>
-                </Paper>
-              ))
-            )}
-          </Stack>
-        </Grid.Col>
-      </Grid>
+          <Paper withBorder radius="md" p="md">
+            <Title order={3}>{FRIENDS_TEXT}</Title>
+
+            <Stack mt="md">
+              {friends.map((friend) => (
+                <FriendCard friend={friend} />
+              ))}
+            </Stack>
+          </Paper>
+
+          <Paper withBorder radius="md" p="md">
+            <Title order={3}>{FIND_FRIENDS_TEXT}</Title>
+
+            <UserSearch />
+          </Paper>
+        </Stack>
+      )}
     </Container>
   );
 };

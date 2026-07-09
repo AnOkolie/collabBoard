@@ -1,8 +1,7 @@
 import { RequestMethods, RequestResolve } from "../types/requests";
 import { request } from "../utilities/requests";
 import { ColumnResponse } from "../types/columns";
-import { userObject } from "~/types/user";
-import { BoardMembersResponse } from "~/types/boards";
+import { BoardMembersResponse } from "../types/boards";
 
 export const getBoardColumns = async (
   boardId: string,
@@ -12,7 +11,7 @@ export const getBoardColumns = async (
 export const addBoardColumn = async (
   columnTitle: string,
   boardId: string,
-  userId: string
+  userId: string,
 ): Promise<RequestResolve<ColumnResponse>> =>
   await request(
     RequestMethods.POST,

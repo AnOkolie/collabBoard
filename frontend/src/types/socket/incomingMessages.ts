@@ -125,24 +125,32 @@ export type IncomingBoardEvent =
       payload: fullMessageResponse;
     }
   | {
-      type: "friend-request:received";
+      type: "friend:request-received";
       message: string;
       payload: {
         user_id: string;
         friend_id: string;
         message: string;
         requester: {
+          profilepic: string;
           username: string;
         };
+        created_at: string;
       };
     }
   | {
-      type: "friend-request:accepted";
+      type: "friend:request-accepted";
       message: string;
     }
   | {
-      type: "friend-request:removed";
+      type: "friend:request-removed";
       message: string;
+    }
+  | {
+      type: "friend:status-update";
+      user_id: string;
+      status: "friends" | "pending" | "blocked";
+      sender: string;
     }
   | {
       type: "typing:start";

@@ -207,7 +207,7 @@ model friendship_requests {
   recipient  users    @relation("friendship_recipient", fields: [friend_id], references: [id])
   requester  users    @relation("friendship_requester", fields: [user_id], references: [id])
 
-  @@unique([user_id, friend_id])
+  @@unique(fields: [user_id, friend_id], name: "requestMembers")
 }
 
 enum conversation_role {

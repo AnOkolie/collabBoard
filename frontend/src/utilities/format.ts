@@ -18,3 +18,19 @@ export const timeString = (timestamp: string) => {
   });
   return time;
 };
+
+export const formatRequestTime = (time: Date) => {
+  console.log(time);
+  const timePassed = new Date(Date.now() - time.getDate());
+  const hours = timePassed.getHours();
+  const min = timePassed.getMinutes();
+  const sec = timePassed.getSeconds();
+  if (hours > 24) {
+    return `${Math.floor(hours / 24)}d`;
+  } else if (hours < 24 && hours > 0) {
+    return `${hours}h`;
+  } else if (min > 0 && min < 60) {
+    return `${min}m`;
+  }
+  return `${sec}s`;
+};

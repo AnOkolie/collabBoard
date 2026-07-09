@@ -1,4 +1,4 @@
-import { findUserResponse } from "~/types/user";
+import { findUserResponse } from "../types/user";
 import { RequestMethods, RequestResolve } from "../types/requests";
 import { request } from "../utilities/requests";
 

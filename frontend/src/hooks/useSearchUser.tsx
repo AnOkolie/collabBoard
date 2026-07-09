@@ -1,14 +1,16 @@
 import { useState, useEffect, useRef } from "react";
 import { useFetcher } from "react-router-dom";
 import { SearchResponse } from "../types/user";
-
+import { useSocket } from "../context/SocketContext";
 import { TextInput } from "@mantine/core";
 import { IconSearch } from "@tabler/icons-react";
 
 export const useSearchUser = (delay: number) => {
   const [searchName, setSearchName] = useState("");
   const fetcher = useFetcher<SearchResponse>();
+  const [usersByName, setUsersByName] = useState(fetcher.data?.data ?? []);
   const lastQueryRef = useRef("");
+  const { lastJsonMessage } = useSocket();
 
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -29,7 +31,27 @@ export const useSearchUser = (delay: number) => {
     }
   }, [searchName]);
 
-  const usersByName = fetcher.data?.data ?? [];
+  useEffect(() => {
+    if (!fetcher.data || !fetcher.data.data) return;
+    setUsersByName(fetcher.data?.data);
+  }, [fetcher]);
+
+  useEffect(() => {
+    if (!lastJsonMessage) return;
+    const { type } = lastJsonMessage;
+    switch (type) {
+      case "friend:status-update":
+        const { user_id, status, sender } = lastJsonMessage;
+        setUsersByName((prev) =>
+          prev.map((user) =>
+            user.id === user_id
+              ? { ...user, friendshipStatus: status, sender }
+              : user,
+          ),
+        );
+    }
+  }, [lastJsonMessage]);
+
   const isLoading = fetcher.state === "loading";
   return {
     searchName,

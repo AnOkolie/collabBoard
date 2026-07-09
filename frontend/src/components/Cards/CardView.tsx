@@ -8,7 +8,7 @@ import {
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { ActionIcon, Card, Group } from "@mantine/core";
-import { CardType, ColumnType } from "~/types/columns";
+import { CardType } from "../../types/columns";
 import { Text } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { IconGripVertical } from "@tabler/icons-react";

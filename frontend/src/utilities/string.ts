@@ -43,3 +43,25 @@ export const DISPLAY_TASKS_DESCRIPTION = "Everything is up to date.";
 // HERO
 export const HERO_NO_TASKS = "🎉 You're all caught up!";
 export const HERO_TACKLE_TASKS = "🚀 Ready to tackle today's work?";
+
+//User Profile Action
+export const PROFILE_UPDATE = "Profile Update";
+export const SUCCESSFUL_PROFILE_UPDATE_TEXT = "Successful";
+export const FAILED_PROFILE_UPDATE_TEXT = "Successful";
+export const SUCCESSFUL_PROFILE_UPDATE_THEME = "Green";
+export const FAILED_PROFILE_UPDATE_THEME = "Red";
+export const CONFIRM_PASSWORD_CHANGE = "Confirm Password Change";
+export const UPDATE_PROFILE_IMAGE = "Update profile picture";
+export const CHANGE_PASSWORD = "Change Password";
+export const UPDATE_PROFILE_BTN_TEXT = "Update Profile";
+export const DELETE_ACCOUNT_BTN_TEXT = "Delete Account";
+
+//Activity
+export const FRIEND_REQUEST_TEXT = "requested to be your friend.";
+export const ACCEPT_REQUEST_BTN = "Accept";
+export const IGNORE_REQUEST_BTN = "Ignore";
+
+//FRIENDS
+export const FIND_FRIENDS_TEXT = "Find Friends";
+export const FRIENDS_TEXT = "Friends";
+export const FRIENDS_PENDING_REQUEST_TEXT = "Pending Requests";

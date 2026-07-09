@@ -7,7 +7,7 @@ import {
 import { RequestMethods } from "../types/requests";
 import { useAuthStore } from "../zustand/authStore/useAuthStore";
 import { RequestResolve } from "../types/requests";
-import { tasks } from "~/types/cards";
+import { tasks } from "../types/cards";
 
 export const getBoards = async (
   userId: string,

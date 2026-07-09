@@ -1,8 +1,6 @@
 import { create } from "zustand";
-import { activityCenter, ActivityData } from "../../types/activity";
-import { BoardInvitesStructure } from "~/types/boards";
-import { FriendRequestStructure } from "~/types/friends";
-import { BoardInvites } from "~/components/ActivityCenter/BoardInvites";
+import { BoardInvitesStructure } from "../../types/boards";
+import { FriendRequestStructure } from "../../types/friends";
 
 type ActivityCentreState = {
   friendActivity: FriendRequestStructure[];
@@ -26,18 +24,12 @@ export const useActivityCentreStore = create<ActivityCentreState>()((set) => ({
   setBoardActivity: (activities) => set({ boardActivity: activities }),
   addFriendActivity: (newActivity) =>
     set((state) => ({
-      friendActivity: {
-        ...state.friendActivity,
-        newActivity,
-      },
+      friendActivity: [...state.friendActivity, newActivity],
       notifLength: state.notifLength + 1,
     })),
   addBoardActivity: (newActivity) =>
     set((state) => ({
-      boardActivity: {
-        ...state.boardActivity,
-        newActivity,
-      },
+      boardActivity: [...state.boardActivity, newActivity],
       notifLength: state.notifLength + 1,
     })),
   removeFriendActivity: (oldActivity) =>

@@ -6,7 +6,7 @@ import { BoardPage } from "./components/Boards/BoardPage";
 import { ColumnView } from "./components/Columns/ColumnView";
 import { Login } from "./components/Login/Login";
 import { Signup } from "./components/Signup/Signup";
-import { UserProfile } from "./components/UserProfile/UserProfile";
+import { UserProfile } from "./components/Profiles/UserProfile/UserProfile";
 import { ProtectedLayout } from "./components/Navbar/ProtectedLayout";
 import { PageLoader } from "./components/PageLoader/PageLoader";
 import { boardLoader } from "./components/Boards/loader";
@@ -15,7 +15,7 @@ import { columnLoader } from "./components/Columns/loader";
 import { columnAction } from "./components/Columns/action";
 import { loginAction } from "./components/Login/action";
 import { signupAction } from "./components/Signup/action";
-import { userProfileAction } from "./components/UserProfile/action";
+import { userProfileAction } from "./components/Profiles/UserProfile/action";
 import { logoutAction } from "./components/Navbar/action";
 import { authLoader } from "./components/Navbar/loader";
 import { ModalsProvider } from "@mantine/modals";
@@ -38,7 +38,9 @@ import { CalendarPage } from "./components/Calendar/CalendarPage";
 import { calendarLoader } from "./components/Calendar/loader";
 import { Dashboard } from "./components/Dashboard/Dashboard";
 import { dashboardLoader } from "./components/Dashboard/loader";
-
+import { FriendProfile } from "./components/Profiles/FriendProfile/FriendProfile";
+import { friendProfileLoader } from "./components/Profiles/FriendProfile/loader";
+import { useRefreshToken } from "./hooks/useRefreshHook";
 const router = createBrowserRouter([
   {
     path: "/login",
@@ -122,6 +124,11 @@ const router = createBrowserRouter([
         ],
       },
       {
+        path: "profile/:id",
+        element: <FriendProfile />,
+        loader: friendProfileLoader,
+      },
+      {
         path: "friends",
         element: <Friends />,
         loader: friendLoader,
@@ -136,7 +143,7 @@ const router = createBrowserRouter([
 
 export const App = () => {
   const isCheckingAuth = useAuthStore((s) => s.isCheckingAuth);
-
+  useRefreshToken();
   if (isCheckingAuth) return <PageLoader />;
   return (
     <MantineProvider>

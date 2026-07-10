@@ -20,6 +20,7 @@ import {
   IGNORE_REQUEST_BTN,
 } from "../../utilities/string";
 import { formatRequestTime } from "../../utilities/format";
+import { useNavigate } from "react-router-dom";
 
 type ActivityCenterProps = {
   friendRequests: FriendRequestStructure[];
@@ -31,7 +32,7 @@ export const FriendRequests = ({
   removeFriendRequest,
 }: ActivityCenterProps) => {
   if (!friendRequests) return null;
-  const { respondToFriendRequest } = useFriendSocket();
+  const { respondToFriendRequest, viewUserProfile } = useFriendSocket();
   const handleClick = (
     friendId: string,
     response: "accepted" | "decline",
@@ -41,7 +42,8 @@ export const FriendRequests = ({
     respondToFriendRequest(friendId, response);
     removeFriendRequest(friend);
   };
-  console.log(friendRequests);
+  const userId = useAuthStore((s) => s.authUser?.id);
+
   return (
     <>
       <Stack gap="sm">
@@ -61,7 +63,12 @@ export const FriendRequests = ({
             >
               <CloseButton pos="absolute" top={2} right={8} />
               <Group wrap="nowrap" align="center">
-                <Avatar src={notif.requester.profilepic} />
+                <Avatar
+                  src={notif.requester.profilepic}
+                  onClick={() =>
+                    viewUserProfile(notif.friend_id, notif.user_id)
+                  }
+                />
                 <Stack gap={2} style={{ flex: 1 }}>
                   <Text size="sm">
                     <Text fw={700} component="span">
@@ -75,7 +82,14 @@ export const FriendRequests = ({
                 </Stack>
 
                 <Group>
-                  <Button size="xs">{ACCEPT_REQUEST_BTN}</Button>
+                  <Button
+                    size="xs"
+                    onClick={() =>
+                      handleClick(notif.user_id, "accepted", notif)
+                    }
+                  >
+                    {ACCEPT_REQUEST_BTN}
+                  </Button>
                   <Button
                     size="xs"
                     variant="light"

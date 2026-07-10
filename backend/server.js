@@ -31,11 +31,16 @@ webSocketSetup();
 
 server.on("upgrade", async (req, socket, head) => {
   try {
-    const user = await socketAuthMiddleware(req);
+    const { user, token } = await socketAuthMiddleware(req);
 
     wss.handleUpgrade(req, socket, head, (ws) => {
-      ws.user = user;
-      wss.emit("connection", ws, req);
+      try {
+        ws.user = user;
+        ws.token = token;
+        wss.emit("connection", ws, req);
+      } catch (err) {
+        ws.close(4001, "TOKEN_EXPIRED");
+      }
     });
   } catch (err) {
     console.error("WebSocket auth failed:", err.message);

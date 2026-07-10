@@ -3,12 +3,14 @@ import { allFriends } from "~/types/friends";
 import { Group, Avatar, Stack, Text, Paper } from "@mantine/core";
 import { UserSearchButton } from "../SearchUser/UserSearchButton";
 import { useFriendSocket } from "../../hooks/useFriendSocket";
+import { useAuthStore } from "../../zustand/authStore/useAuthStore";
 type props = {
   friend: allFriends;
 };
 
 export const FriendCard = ({ friend }: props) => {
-  const { sendFriendRequest, respondToFriendRequest } = useFriendSocket();
+  const { sendFriendRequest, viewUserProfile } = useFriendSocket();
+  const userId = useAuthStore((s) => s.authUser?.id);
   return (
     <Paper
       key={friend.id}
@@ -18,6 +20,7 @@ export const FriendCard = ({ friend }: props) => {
       style={{
         transition: "0.2s",
       }}
+      onClick={() => viewUserProfile(friend.id, userId ?? "")}
     >
       <Group justify="space-between">
         <Group>

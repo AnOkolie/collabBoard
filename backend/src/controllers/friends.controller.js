@@ -255,3 +255,43 @@ export const getAllFriends = async (req, res) => {
     return res.status(500).json({ error: "Internal server error" });
   }
 };
+
+export const getFriendshipStatus = async (user_id, target_id) => {
+  if (!user_id || !target_id) {
+    return { error: "Missing required fields" };
+  }
+  try {
+    const friends = await prisma.friends.findFirst({
+      where: {
+        OR: [
+          { user_id, friend_id: target_id },
+          { user_id: target_id, friend_id: user_id },
+        ],
+      },
+      include: {
+        user: true,
+        friend: true,
+      },
+    });
+    if (friends) {
+      return friends;
+    }
+    const requests = await prisma.friendship_requests.findFirst({
+      where: {
+        OR: [
+          { user_id, friend_id: target_id },
+          { user_id: target_id, friend_id: user_id },
+        ],
+      },
+      include: {
+        recipient: true,
+        requester: true,
+      },
+    });
+    if (requests) {
+      return requests;
+    }
+  } catch (err) {
+    console.log("error getting friends state", err);
+  }
+};

@@ -1,8 +1,12 @@
-import { profile } from "node:console";
+import { error, profile } from "node:console";
 import { pool } from "../db/db.js";
 import bcrypt from "bcrypt";
 import cloudinary from "../utils/cloudinary.js";
 import { prisma } from "../db/prisma.js";
+import { formatAllFriendsResponse } from "../transformers/friends.js";
+import { generateMutualFriends } from "../services/userFunctions.js";
+import { formatGetUserProfile } from "../transformers/user.js";
+import { getFriendshipStatus } from "./friends.controller.js";
 
 export const updateUser = async (req, res) => {
   const { user_id: userId } = req.params;
@@ -222,6 +226,153 @@ export const getProfilePicture = async (user_id) => {
     return { message: "Profile retrieved", profilepic: profile.rows[0] };
   } catch (err) {
     console.error({ error: "Error retrieving profile:", err });
+  }
+};
+
+export const getUserProfile = async (req, res) => {
+  const { user_id } = req.params;
+  const { target } = req.query;
+  if (!user_id) {
+    return res.status(400).json({ error: "Missing required fields" });
+  }
+  try {
+    const targetUserBoards = await prisma.boards.findMany({
+      where: {
+        board_members: {
+          some: {
+            user_id: {
+              in: [target],
+            },
+          },
+        },
+      },
+    });
+    const otherUser = await prisma.users.findUnique({
+      where: {
+        id: target,
+      },
+      include: {
+        friendsInitiated: {
+          select: {
+            id: true,
+            user_id: true,
+            friend_id: true,
+            created_at: true,
+            friend: {
+              select: {
+                username: true,
+                email: true,
+                profilepic: true,
+                id: true,
+              },
+            },
+            status: true,
+            conversation_id: true,
+          },
+        },
+        friendsReceived: {
+          select: {
+            id: true,
+            user_id: true,
+            friend_id: true,
+            created_at: true,
+            user: {
+              select: {
+                username: true,
+                email: true,
+                profilepic: true,
+                id: true,
+              },
+            },
+            status: true,
+            conversation_id: true,
+          },
+        },
+      },
+      omit: {
+        password: true,
+        email: true,
+      },
+    });
+    const userFriends = await prisma.users.findFirst({
+      where: {
+        id: user_id,
+      },
+      include: {
+        friendsInitiated: {
+          select: {
+            id: true,
+            user_id: true,
+            friend_id: true,
+            created_at: true,
+            friend: {
+              select: {
+                username: true,
+                email: true,
+                profilepic: true,
+                id: true,
+              },
+            },
+            status: true,
+            conversation_id: true,
+          },
+        },
+        friendsReceived: {
+          select: {
+            id: true,
+            user_id: true,
+            friend_id: true,
+            created_at: true,
+            user: {
+              select: {
+                username: true,
+                email: true,
+                profilepic: true,
+                id: true,
+              },
+            },
+            status: true,
+            conversation_id: true,
+          },
+        },
+      },
+    });
+    const targetFriends = [
+      ...otherUser.friendsInitiated,
+      ...otherUser.friendsReceived,
+    ];
+    const myFriends = [
+      ...userFriends.friendsInitiated,
+      ...userFriends.friendsReceived,
+    ];
+    console.log("user friends", userFriends);
+    console.log("friend structure", myFriends);
+    const friendMutuals = generateMutualFriends(
+      myFriends,
+      targetFriends,
+      user_id,
+      target,
+    );
+    if (!otherUser) {
+      return res.status(401).json({ error: "Profile can't be found" });
+    }
+    const data = {
+      ...otherUser,
+      mutuals: friendMutuals,
+      friendshipStatus: await getFriendshipStatus(user_id, target),
+    };
+    return res.status(200).json({
+      message: "Profile found!",
+      data: formatGetUserProfile(
+        data,
+        targetUserBoards,
+        targetFriends,
+        friendMutuals,
+      ),
+    });
+  } catch (err) {
+    console.error("error fetching user profile", err);
+    return res.status(500).json({ error: "Internal server error" });
   }
 };
 

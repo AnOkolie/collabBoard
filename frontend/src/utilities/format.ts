@@ -25,7 +25,7 @@ export const formatRequestTime = (time: Date) => {
   const hours = timePassed.getHours();
   const min = timePassed.getMinutes();
   const sec = timePassed.getSeconds();
-  if (hours > 24) {
+  if (hours >= 24) {
     return `${Math.floor(hours / 24)}d`;
   } else if (hours < 24 && hours > 0) {
     return `${hours}h`;

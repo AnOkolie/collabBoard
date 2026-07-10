@@ -1,4 +1,4 @@
-import { findUserResponse } from "../types/user";
+import { userProfileResponse, findUserResponse } from "../types/user";
 import { RequestMethods, RequestResolve } from "../types/requests";
 import { request } from "../utilities/requests";
 
@@ -36,4 +36,13 @@ export const sendFriendRequest = async (user_id: string, friend_id: string) =>
     "user/add-friend",
     undefined,
     JSON.stringify({ user_id: user_id, friend_id: friend_id }),
+  );
+
+export const findUserProfile = async (
+  currentUser: string,
+  targetUser: string,
+): Promise<RequestResolve<userProfileResponse>> =>
+  await request(
+    RequestMethods.GET,
+    `profile/${currentUser}?target=${targetUser}`,
   );

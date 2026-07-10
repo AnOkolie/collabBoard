@@ -65,3 +65,7 @@ export const IGNORE_REQUEST_BTN = "Ignore";
 export const FIND_FRIENDS_TEXT = "Find Friends";
 export const FRIENDS_TEXT = "Friends";
 export const FRIENDS_PENDING_REQUEST_TEXT = "Pending Requests";
+
+//PROFILE
+export const PROFILE_BOARD_TEXT = "Boards";
+export const PROFILE_FRIENDS_TEXT = "Friends";

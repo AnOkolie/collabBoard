@@ -1,4 +1,4 @@
-import { deleteUser, updateUser } from "../../api/user";
+import { deleteUser, updateUser } from "../../../api/user";
 
 export const userProfileAction = async ({ request }: { request: Request }) => {
   const formData = await request.formData();

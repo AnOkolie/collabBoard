@@ -1,12 +1,14 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { userObject } from "../../types/user";
+import { logout } from "../../api/logout";
 
 interface AuthState {
   authUser: userObject | null;
   isCheckingAuth: boolean;
   hasHydrated: boolean;
   setAuthUser: (user: userObject | null) => void;
+  logout: () => void;
   token: string;
   setToken: (token: string) => void;
   deleteToken: () => void;
@@ -24,6 +26,7 @@ export const useAuthStore = create<AuthState>()(
       deleteToken: () => set(() => ({ token: "" })),
       setCheckingAuth: (state) => set(() => ({ isCheckingAuth: state })),
       setAuthUser: (user) => set({ authUser: user }),
+      logout: () => () => logout(),
     }),
     {
       name: "auth-store",

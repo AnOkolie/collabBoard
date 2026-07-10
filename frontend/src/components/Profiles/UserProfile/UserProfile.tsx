@@ -11,13 +11,13 @@ import {
   Input,
   Stack,
 } from "@mantine/core";
-import { useAuthStore } from "../../zustand/authStore/useAuthStore";
+import { useAuthStore } from "../../../zustand/authStore/useAuthStore";
 import { useDisclosure } from "@mantine/hooks";
 import { Form, useActionData, useSubmit } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { SIGN_UP_RULE_1 } from "../../constants/string";
+import { SIGN_UP_RULE_1 } from "../../../constants/string";
 import { IconPencil } from "@tabler/icons-react";
-import { displayNotifications } from "../../utilities/notification/displayNotifications";
+import { displayNotifications } from "../../../utilities/notification/displayNotifications";
 import {
   CHANGE_PASSWORD,
   CONFIRM_PASSWORD_CHANGE,
@@ -29,7 +29,7 @@ import {
   SUCCESSFUL_PROFILE_UPDATE_THEME,
   UPDATE_PROFILE_BTN_TEXT,
   UPDATE_PROFILE_IMAGE,
-} from "../../utilities/string";
+} from "../../../utilities/string";
 
 export const UserProfile = () => {
   const authUser = useAuthStore((s) => s.authUser);

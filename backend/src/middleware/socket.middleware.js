@@ -11,29 +11,32 @@ export const socketAuthMiddleware = async (req) => {
   if (!token) {
     throw new Error("Unauthorized - No Token Provided");
   }
+  try {
+    const { id, email } = jwt.verify(token, ENV.ACCESS_SECRET);
 
-  const { id, email } = jwt.verify(token, ENV.ACCESS_SECRET);
+    if (!id) {
+      throw new Error("Unauthorized - Invalid Token");
+    }
+    const result = await prisma.users.findUnique({
+      where: {
+        id: id,
+      },
+      select: {
+        id: true,
+        email: true,
+        username: true,
+        profilepic: true,
+      },
+    });
 
-  if (!id) {
-    throw new Error("Unauthorized - Invalid Token");
+    const user = result;
+
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    return { user, token };
+  } catch (err) {
+    throw new Error("TOKEN_EXPIRED");
   }
-  const result = await prisma.users.findUnique({
-    where: {
-      id: id,
-    },
-    select: {
-      id: true,
-      email: true,
-      username: true,
-      profilepic: true,
-    },
-  });
-
-  const user = result;
-
-  if (!user) {
-    throw new Error("User not found");
-  }
-
-  return user;
 };

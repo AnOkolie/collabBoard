@@ -53,7 +53,6 @@ export const webSocketSetup = () => {
       if (ws.isAlive === false) {
         return ws.terminate(); // Kill broken connection
       }
-
       ws.isAlive = false;
       ws.ping(); // Send ping frame
     }, 30000);

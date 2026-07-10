@@ -2,12 +2,13 @@
 import { useCallback } from "react";
 import { useSocket } from "../context/SocketContext";
 import { useAuthStore } from "../zustand/authStore/useAuthStore";
+import { useNavigate } from "react-router-dom";
 
 export const useFriendSocket = () => {
   const { sendJsonMessage, isConnected } = useSocket();
 
   const currentUserId = useAuthStore((state) => state.authUser?.id);
-
+  const navigate = useNavigate();
   const sendFriendRequest = useCallback(
     (friendId: string) => {
       if (!currentUserId || !friendId || !isConnected) return;
@@ -34,8 +35,14 @@ export const useFriendSocket = () => {
     },
     [currentUserId, isConnected, sendJsonMessage],
   );
-
+  const viewUserProfile = (userId: string, friendId: string) => {
+    navigate(`/profile/${getFriendId(friendId, userId)}`);
+  };
+  const getFriendId = (userId: string, friendId: string) => {
+    return userId === currentUserId ? friendId : userId;
+  };
   return {
+    viewUserProfile,
     sendFriendRequest,
     respondToFriendRequest,
   };

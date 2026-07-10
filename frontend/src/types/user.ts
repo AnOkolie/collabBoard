@@ -40,6 +40,7 @@ export type profile = {
   profilepic: string;
   createdAt: string;
   email: string;
+  conversationId: string;
   friendshipStatus: "friends" | "pending" | "blocked" | null;
   sender: string;
   boards: profileBoards[];

@@ -11,6 +11,5 @@ export const friendProfileLoader = async ({
   const userId = useAuthStore.getState().authUser?.id;
   if (!id || !userId) return;
   const result = await findUserProfile(userId, id);
-  console.log(result.data);
   return result.data;
 };

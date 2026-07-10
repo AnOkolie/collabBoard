@@ -57,7 +57,7 @@ export const UserSearchButton = ({
     if (!userId) return;
     const data = await getOrCreateDirectConversation(userId, friendId);
     if (!data) return;
-    navigate(`/messages/${userId}/${conversationId}`);
+    navigate(`/messages/${userId}/${conversationId ?? data.conversation.id}`);
   };
   useEffect(() => {
     if (!lastJsonMessage) return;

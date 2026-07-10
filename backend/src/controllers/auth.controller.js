@@ -109,7 +109,7 @@ export const checkAuth = async (req, res) => {
       .status(200)
       .json({ message: "User is authenticated", user: result });
   } catch (err) {
-    console.log(err);
+    console.error(err);
     return res.status(401).json({ error: "Invalid or expired token" });
   }
 };

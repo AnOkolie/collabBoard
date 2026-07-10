@@ -28,7 +28,7 @@ export const formatDirectConversation = (convo, message_type = "direct") => {
     name:
       convo.name ??
       convo.conversation_members.map((user) => user.users.username),
-    activeStatus: getActiveStatus(convo.conversation_members[0].users.id),
+    // activeStatus: getActiveStatus(convo.conversation_members[0].users.id),
   };
 };
 

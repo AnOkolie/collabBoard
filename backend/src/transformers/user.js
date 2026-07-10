@@ -64,5 +64,6 @@ const formatFriendshipStatus = (data) => {
   return {
     status: data.status,
     sender: data.friend.id ?? data.requester.id,
+    conversationId: data.conversation_id,
   };
 };

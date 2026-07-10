@@ -20,7 +20,6 @@ export const timeString = (timestamp: string) => {
 };
 
 export const formatRequestTime = (time: Date) => {
-  console.log(time);
   const timePassed = new Date(Date.now() - time.getDate());
   const hours = timePassed.getHours();
   const min = timePassed.getMinutes();

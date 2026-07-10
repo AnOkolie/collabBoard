@@ -20,10 +20,9 @@ export const FriendRequestCard = ({ request }: props) => {
       style={{
         transition: "0.2s",
       }}
-      onClick={() => viewUserProfile(request.id, userId ?? "")}
     >
       <Group justify="space-between">
-        <Group>
+        <Group onClick={() => viewUserProfile(request.id, userId ?? "")}>
           <Avatar size="md" src={request.profilepic || undefined} />
 
           <Stack gap={0}>

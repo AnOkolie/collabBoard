@@ -99,7 +99,7 @@ export const webSocketSetup = () => {
           updateCardDetails(boardId, card, ws);
         }
       } catch (err) {
-        console.log("Message err: ", err);
+        console.error("Message err: ", err);
       }
     });
 

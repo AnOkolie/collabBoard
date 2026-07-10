@@ -7,6 +7,7 @@ import { formatAllFriendsResponse } from "../transformers/friends.js";
 import { generateMutualFriends } from "../services/userFunctions.js";
 import { formatGetUserProfile } from "../transformers/user.js";
 import { getFriendshipStatus } from "./friends.controller.js";
+import { friendship_status } from "../generated/prisma/index.js";
 
 export const updateUser = async (req, res) => {
   const { user_id: userId } = req.params;
@@ -345,8 +346,6 @@ export const getUserProfile = async (req, res) => {
       ...userFriends.friendsInitiated,
       ...userFriends.friendsReceived,
     ];
-    console.log("user friends", userFriends);
-    console.log("friend structure", myFriends);
     const friendMutuals = generateMutualFriends(
       myFriends,
       targetFriends,
@@ -375,5 +374,3 @@ export const getUserProfile = async (req, res) => {
     return res.status(500).json({ error: "Internal server error" });
   }
 };
-
-// SELECT u.id, u.profilepic, u.username, u.email, uf.status, uf.request_sender FROM users as u LEFT JOIN user_friendships as uf ON u.id = uf.user_id OR u.id = uf.friend_id WHERE (uf.user_id='c004a3e5-84fc-4ab1-8266-775bba866de0' OR uf.friend_id='c004a3e5-84fc-4ab1-8266-775bba866de0') AND username='anthony'

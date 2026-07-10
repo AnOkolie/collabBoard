@@ -26,7 +26,6 @@ export const FriendProfile = () => {
   useEffect(() => {
     if (!loaderData) return;
     setUser(loaderData.data);
-    console.log("friend:", loaderData);
   }, [loaderData]);
   const data = [
     { label: "About", value: "about" },

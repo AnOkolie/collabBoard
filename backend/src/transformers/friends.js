@@ -27,8 +27,7 @@ export const formatAllFriendsResponse = (friends) => {
         friend.user_id ??
         friend.user?.id ??
         friend.friend?.id,
-      conversationId:
-        friend.user?.conversation_id ?? friend.friend?.conversation_id,
+      conversationId: friend.conversation_id,
     };
   });
   return result;

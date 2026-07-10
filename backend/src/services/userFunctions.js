@@ -4,18 +4,14 @@ export const generateMutualFriends = (
   currUser,
   targetUser,
 ) => {
-  console.log("curr user map", currentUserFriends);
-  console.log("target user map", targetUserFriends);
   const currentUser = new Map();
   currentUserFriends.map((user) => {
     const id = user.user_id === currUser ? user.friend_id : user.user_id;
-    console.log("curr user", id);
     currentUser.set(id, user);
   });
   const targetUserMap = new Map();
   targetUserFriends.map((user) => {
     const id = user.user_id === targetUser ? user.friend_id : user.user_id;
-    console.log("target user", id);
     targetUserMap.set(id, user);
   });
 
@@ -30,7 +26,6 @@ const compareFriends = (currUser, targetUser) => {
   let mutuals = [];
   for (const [key, value] of currUser) {
     if (targetUser.has(key)) {
-      console.log("key", key);
       const temp = targetUser.get(key);
       const user = {
         id: temp.id,
@@ -43,6 +38,5 @@ const compareFriends = (currUser, targetUser) => {
       mutuals = [...mutuals, user];
     }
   }
-  console.log("mutuals", mutuals);
   return mutuals;
 };

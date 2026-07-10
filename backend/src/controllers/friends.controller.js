@@ -292,6 +292,6 @@ export const getFriendshipStatus = async (user_id, target_id) => {
       return requests;
     }
   } catch (err) {
-    console.log("error getting friends state", err);
+    console.error("error getting friends state", err);
   }
 };
